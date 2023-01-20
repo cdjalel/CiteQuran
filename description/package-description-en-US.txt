@@ -1,0 +1,4 @@
+This add-on allows you to insert Arabic text from the Qur'an into your document.
+Either by selecting a single ayat or a range of ayats from a surah.
+
+Additionally, you have the ability to add several translations to the text.

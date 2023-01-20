@@ -1,0 +1,13 @@
+build/
+.chglog/
+data/data
+data/icons
+data/screenshots
+.gradle
+.idea/
+*.iml
+*.ipr
+*.iws
+other/
+/bin/
+Logging.*

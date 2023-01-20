@@ -1,0 +1,16 @@
+#ifndef __nl_mossoft_lo_QuranLOAddon_QuranLOAddon_idl__
+#define __nl_mossoft_lo_QuranLOAddon_QuranLOAddon_idl__
+
+#include <com/sun/star/task/XJobExecutor.idl>
+module nl { module mossoft { module lo { module QuranLOAddon {
+
+	service ShowIQTDialog : com::sun::star::task::XJobExecutor {
+
+	};
+
+	service ShowAboutDialog : com::sun::star::task::XJobExecutor {
+
+	};
+ }; }; }; };
+ 
+#endif

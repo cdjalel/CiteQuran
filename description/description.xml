@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<description
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns="http://openoffice.org/extensions/description/2006">
+
+  <display-name>
+    <name lang="en">QuranLOAddon</name>
+  </display-name>
+  <extension-description>
+    <src lang="en-US" xlink:href="description/package-description-en-US.txt"/>
+  </extension-description>
+
+  <icon>
+    <default xlink:href="images/q64.png"/>
+  </icon>
+
+  <identifier value="nl.mossoft.lo.QuranLOAddon"/>
+
+  <platform value="all"/>
+
+  <registration>
+    <simple-license accept-by="user">
+      <license-text lang="en" xlink:href="COPYING"/>
+    </simple-license>
+  </registration>
+
+  <version value="${version} "/>
+
+</description>
