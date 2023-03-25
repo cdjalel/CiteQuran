@@ -54,14 +54,12 @@ public class AddonDialogTools {
    */
   public static void enableControl(
       final XControlContainer controlContainer, final String id, final boolean toggle) {
-    XControl dialogControl = getControl(controlContainer, XControl.class, id);
-    XPropertySet ps = getPropertSet(dialogControl.getModel());
+    final XControl dialogControl = getControl(controlContainer, XControl.class, id);
+    final XPropertySet ps = getPropertSet(dialogControl.getModel());
     try {
       ps.setPropertyValue(AddonDialog.PROP_ENABLED, toggle);
-    } catch (IllegalArgumentException
-             | UnknownPropertyException
-             | WrappedTargetException
-             | PropertyVetoException ex) {
+    } catch (final IllegalArgumentException | UnknownPropertyException |
+        WrappedTargetException | PropertyVetoException ex) {
       LOGGER.log(Level.SEVERE, ex.toString(), ex);
     }
   }

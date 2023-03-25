@@ -1,21 +1,14 @@
 package nl.mossoft.lo.dialog;
 
-import static nl.mossoft.lo.utils.DialogType.ABOUTDIALOG;
-import static nl.mossoft.lo.utils.DialogType.INSERTQURANTEXTDIALOG;
-
 import com.sun.star.awt.ActionEvent;
 import com.sun.star.awt.ItemEvent;
 import com.sun.star.awt.TextEvent;
 import com.sun.star.awt.XActionListener;
-import com.sun.star.awt.XButton;
-import com.sun.star.awt.XCheckBox;
 import com.sun.star.awt.XControl;
 import com.sun.star.awt.XControlContainer;
 import com.sun.star.awt.XControlModel;
 import com.sun.star.awt.XDialog;
 import com.sun.star.awt.XItemListener;
-import com.sun.star.awt.XListBox;
-import com.sun.star.awt.XTextComponent;
 import com.sun.star.awt.XTextListener;
 import com.sun.star.awt.XToolkit;
 import com.sun.star.awt.XTopWindow;
@@ -28,6 +21,7 @@ import com.sun.star.container.XNameContainer;
 import com.sun.star.lang.EventObject;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.lang.XComponent;
+import com.sun.star.lang.XEventListener;
 import com.sun.star.lang.XMultiComponentFactory;
 import com.sun.star.lang.XMultiServiceFactory;
 import com.sun.star.style.VerticalAlignment;
@@ -82,16 +76,14 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
   protected static final short ALIGNMENT_RIGHT = (short) 2;
 
   protected static final String EVENT_ACTION_PERFORMED = "actionPerformed";
-  protected static final String EVENT_ITEM_STATE_CHANGED = "ItemStateChanged";
-  protected static final String EVENT_TEXT_CHANGED = "TextChanged";
+  protected static final String EVENT_ITEM_STATE_CHANGED = "itemStateChanged";
+  protected static final String EVENT_TEXT_CHANGED = "textChanged";
 
   private static final Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
   private static final String RESOURCE_BUNDLE = "nl.mossoft.lo.messages.DialogLabels";
-  protected final ResourceBundle resourceBundle;
-
-  private final Map<String, Method> actionsMap = new LinkedHashMap<>();
-
+  private static final Map<String, Method> actionsMap = new LinkedHashMap<>();
+  protected final ResourceBundle rb;
   protected XComponent component = null;
   protected XComponentContext componentContext;
   protected XMultiComponentFactory multiComponentFactory;
@@ -111,7 +103,7 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
    */
   protected AddonDialog(final XComponentContext componentContext, final Locale locale) {
     this.componentContext = componentContext;
-    resourceBundle = ResourceBundle.getBundle(RESOURCE_BUNDLE, locale);
+    rb = ResourceBundle.getBundle(RESOURCE_BUNDLE, locale);
     LOGGER.log(Level.FINER, "AddonDialog.Constructor");
 
     createDialog();
@@ -189,16 +181,71 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
   public static AddonDialog loadAddonDialog(
       final DialogType dialogType, final XComponentContext componentContext,
       final Locale locale) {
+    try {
+      Class[] parameterTypes = new Class[]{
+          XComponentContext.class,
+          Locale.class
+      };
+      Class<?> clazz = Class.forName(dialogType.toString());
 
-    if (dialogType == ABOUTDIALOG) {
-      LOGGER.log(Level.FINER, "AddonDialog.loadAddonDialog({0})", new Object[]{ABOUTDIALOG});
-      return new AboutDialog(componentContext, locale);
-    } else if (dialogType == INSERTQURANTEXTDIALOG) {
-      LOGGER.log(Level.FINER, "AddonDialog.loadAddonDialog({0})",
-          new Object[]{INSERTQURANTEXTDIALOG});
-      return new InsertQuranTextDialog(componentContext, locale);
+      return (AddonDialog) clazz.getDeclaredConstructor(parameterTypes)
+          .newInstance(componentContext, locale);
+    } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException |
+        IllegalAccessException | InvocationTargetException ex) {
+      LOGGER.log(Level.SEVERE, ex.toString(), ex);
     }
-    return null;
+    return new ErrorDialog(componentContext, locale);
+  }
+
+  protected static <T> void registerDialogEvent(
+      final String dlgName, final XControlContainer controlContainer, final Class<T> type,
+      final String eventName, final XEventListener listener) {
+    LOGGER.log(Level.FINER, "AddonDialog.registerDialogEvent({0},{1})", new Object[]{
+        dlgName,
+        eventName
+    });
+    try {
+      final String event = dlgName + "." + eventName2Event(eventName);
+
+      final Object dlgControl = AddonDialogTools.getControl(controlContainer, type, dlgName);
+      final Method[] methods = dlgControl.getClass().getDeclaredMethods();
+      for (final Method method : methods) {
+        if (method.getName().equals("addItemListener") || method.getName()
+            .equals("addActionListener") || method.getName().equals("addTextListener")) {
+          method.invoke(dlgControl, listener);
+          final Method handler = listener.getClass()
+              .getDeclaredMethod("handle".concat(eventName.substring(2)));
+          LOGGER.log(Level.FINER,
+              "AddonDialog.registerDialogEvent handler {1} registered for event {0}",
+              new Object[]{
+                  event,
+                  handler.getName(),
+                  });
+          actionsMap.put(event, handler);
+          return;
+        }
+      }
+    } catch (final IllegalAccessException | InvocationTargetException |
+        NoSuchMethodException ex) {
+      LOGGER.log(Level.SEVERE, ex.toString(), ex);
+    }
+  }
+
+  protected static String eventName2Event(final String eventName) {
+    switch (eventName.substring(eventName.length() - 7)) {
+      case "Pressed" -> {
+        return EVENT_ACTION_PERFORMED;
+      }
+      case "elected" -> {
+        return EVENT_ITEM_STATE_CHANGED;
+      }
+      case "Changed" -> {
+        return EVENT_TEXT_CHANGED;
+      }
+      default ->
+          LOGGER.log(Level.SEVERE, "No Mapping for event: {0}", new Object[]{eventName});
+    }
+    return "???";
   }
 
   /**
@@ -232,11 +279,11 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
     LOGGER.log(Level.FINER, "AddonDialog.initializeDialog()");
   }
 
-  protected void insertChkbx(
-      final String name, final int x, final int y, final int width, final int height,
-      final XItemListener itemListener, final boolean enable) {
+  protected void insertCheckBox(
+      final String dlgName, final int x, final int y, final int width, final int height,
+      final boolean enable) {
 
-    LOGGER.log(Level.FINER, "AddonDialog.insertChkbx()");
+    LOGGER.log(Level.FINER, "AddonDialog.insertCheckBox()");
     try {
       final Object checkBoxModel = AddonDialogTools.createInstance(multiServiceFactory,
           "com.sun.star.awt.UnoControlCheckBoxModel");
@@ -252,17 +299,15 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
       }, new Object[]{
           enable,
           height,
-          name,
+          dlgName,
           x,
           y,
           VerticalAlignment.MIDDLE,
           width
       });
-      nameContainer.insertByName(name, checkBoxModel);
-      final XCheckBox checkBox = AddonDialogTools.getControl(
-          controlContainer, XCheckBox.class, name);
-      checkBox.addItemListener(itemListener);
-      AddonDialogTools.showProperties(controlContainer, name);
+      nameContainer.insertByName(dlgName, checkBoxModel);
+
+      AddonDialogTools.showProperties(controlContainer, dlgName);
     } catch (final Exception ex) {
       LOGGER.log(Level.SEVERE, ex.toString(), ex);
     }
@@ -271,20 +316,19 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
   /**
    * Insert button.
    *
-   * @param name           the name
-   * @param x              the x
-   * @param y              the y
-   * @param width          the width
-   * @param height         the height
-   * @param label          the label
-   * @param actionListener the action listener
-   * @param enable         the enable
+   * @param dlgName the name of the dialog
+   * @param x       the x postion of the dialog
+   * @param y       the y postion of the dialog
+   * @param width   the width of the dialog
+   * @param height  the height of the dialog
+   * @param label   the label shown on the button
+   * @param enable  enable/disable the control on creation
    */
-  protected void insertBttn(
-      String name, final int x, final int y, final int width, final int height,
-      final String label, final XActionListener actionListener, final boolean enable) {
+  protected void insertButton(
+      final String dlgName, final int x, final int y, final int width, final int height,
+      final String label, final boolean enable) {
 
-    LOGGER.log(Level.FINER, "AddonDialog.insertBttn()");
+    LOGGER.log(Level.FINER, "AddonDialog.insertButton()");
     try {
       final Object buttonModel = AddonDialogTools.createInstance(multiServiceFactory,
           "com.sun.star.awt.UnoControlButtonModel");
@@ -301,17 +345,13 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
           enable,
           height,
           label,
-          name,
+          dlgName,
           x,
           y,
           width
       });
-
-      nameContainer.insertByName(name, buttonModel);
-      final XButton button = AddonDialogTools.getControl(
-          controlContainer, XButton.class, name);
-      button.addActionListener(actionListener);
-      AddonDialogTools.showProperties(controlContainer, name);
+      nameContainer.insertByName(dlgName, buttonModel);
+      AddonDialogTools.showProperties(controlContainer, dlgName);
     } catch (final Exception ex) {
       LOGGER.log(Level.SEVERE, ex.toString(), ex);
     }
@@ -331,12 +371,12 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
    * @param fontWeight the font weight
    * @param enable     enable
    */
-  protected void insertLbl(
+  protected void insertLabel(
       final String name, final int x, final int y, final int width, final int height,
       final String label, final short alignment, final float fontHeight,
       final float fontWeight, final boolean enable) {
 
-    LOGGER.log(Level.FINER, "AddonDialog.insertLbl()");
+    LOGGER.log(Level.FINER, "AddonDialog.insertLabel()");
     try {
       final Object fixedTextModel = AddonDialogTools.createInstance(
           multiServiceFactory, "com.sun.star.awt.UnoControlFixedTextModel");
@@ -386,12 +426,12 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
    * @param multiline a multiline label
    * @param enable    enable
    */
-  protected void insertLbl(
+  protected void insertLabel(
       final String name, final int x, final int y, final int width, final int height,
       final String label, final short alignment, final boolean multiline,
       final boolean enable) {
 
-    LOGGER.log(Level.FINER, "AddonDialog.insertLbl()");
+    LOGGER.log(Level.FINER, "AddonDialog.insertLabel()");
     try {
       final Object fixedTextModel = AddonDialogTools.createInstance(
           multiServiceFactory, "com.sun.star.awt.UnoControlFixedTextModel");
@@ -437,11 +477,11 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
    * @param label  the label
    * @param enable the enable
    */
-  protected void insertGrpbox(
+  protected void insertGroupBox(
       final String name, final int x, final int y, final int width, final int height,
       final String label, final boolean enable) {
 
-    LOGGER.log(Level.FINER, "AddonDialog.insertGrpbox()");
+    LOGGER.log(Level.FINER, "AddonDialog.insertGroupBox()");
     try {
       final Object groupBoxModel = AddonDialogTools.createInstance(multiServiceFactory,
           "com.sun.star.awt.UnoControlGroupBoxModel");
@@ -481,11 +521,11 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
    * @param url    the url
    * @param enable the enable
    */
-  protected void insertImgCntl(
+  protected void insertImageControl(
       final String name, final int x, final int y, final int width, final int height,
       final String url, final boolean enable) {
 
-    LOGGER.log(Level.FINER, "AddonDialog.insertImgCntl()");
+    LOGGER.log(Level.FINER, "AddonDialog.insertImageControl()");
     try {
       final Object imageControlModel = AddonDialogTools.createInstance(
           multiServiceFactory, "com.sun.star.awt.UnoControlImageControlModel");
@@ -514,10 +554,10 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
     }
   }
 
-  protected void insertNumFld(
-      final String name, final int x, final int y, final int width, final int height,
-      final XTextListener textListener, final boolean enable) {
-    LOGGER.log(Level.FINER, "AddonDialog.insertNumFld()");
+  protected void insertNumericField(
+      final String dlgName, final int x, final int y, final int width, final int height,
+      final boolean enable) {
+    LOGGER.log(Level.FINER, "AddonDialog.insertNumericField()");
     try {
       final Object numericFieldModel = AddonDialogTools.createInstance(multiServiceFactory,
           "com.sun.star.awt.UnoControlNumericFieldModel");
@@ -538,28 +578,25 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
           (short) 0,
           enable,
           height,
-          name,
+          dlgName,
           x,
           y,
           true,
           VerticalAlignment.MIDDLE,
           width
       });
-      nameContainer.insertByName(name, numericFieldModel);
-      final XTextComponent textComponent = AddonDialogTools.getControl(controlContainer,
-          XTextComponent.class, name);
-      textComponent.addTextListener(textListener);
-      AddonDialogTools.showProperties(controlContainer, name);
+      nameContainer.insertByName(dlgName, numericFieldModel);
+      AddonDialogTools.showProperties(controlContainer, dlgName);
     } catch (final Exception ex) {
       LOGGER.log(Level.SEVERE, ex.toString(), ex);
     }
   }
 
-  protected void insertLstbx(
-      final String name, final int x, final int y, final int width, final int height,
-      final XItemListener itemListener, final boolean enable) {
+  protected void insertListBox(
+      final String dlgName, final int x, final int y, final int width, final int height,
+      final boolean enable) {
 
-    LOGGER.log(Level.FINER, "AddonDialog.insertLstbx()");
+    LOGGER.log(Level.FINER, "AddonDialog.insertListBox()");
     try {
       final Object listBoxModel = AddonDialogTools.createInstance(multiServiceFactory,
           "com.sun.star.awt.UnoControlListBoxModel");
@@ -576,16 +613,13 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
           true,
           enable,
           height,
-          name,
+          dlgName,
           x,
           y,
           width
       });
-      nameContainer.insertByName(name, listBoxModel);
-      final XListBox listBox = AddonDialogTools.getControl(
-          controlContainer, XListBox.class, name);
-      listBox.addItemListener(itemListener);
-      AddonDialogTools.showProperties(controlContainer, name);
+      nameContainer.insertByName(dlgName, listBoxModel);
+      AddonDialogTools.showProperties(controlContainer, dlgName);
     } catch (final Exception ex) {
       LOGGER.log(Level.SEVERE, ex.toString(), ex);
     }
@@ -597,8 +631,7 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
     handleDialogEvent(textEvent, EVENT_TEXT_CHANGED);
   }
 
-
-  protected void handleDialogEvent(final EventObject eventObject, String eventName) {
+  protected void handleDialogEvent(final EventObject eventObject, final String eventName) {
     try {
       final XControl eventSource = UnoRuntime.queryInterface(
           XControl.class, eventObject.Source);
@@ -610,9 +643,17 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
         LOGGER.log(Level.FINER, "AddonDialog.handleDialogEvent({0}) invoked handler: {1}",
             new Object[]{
                 eventName,
-                actionsMap.get(dialogName + "." + eventName)
+                actionsMap.get(dialogName + "." + eventName).getName()
             });
         actionsMap.get(dialogName + "." + eventName).invoke(this);
+      } else {
+        LOGGER.log(
+            Level.FINER,
+            "AddonDialog.handleDialogEvent({0}) No event handler registered for dialog {1}",
+            new Object[]{
+                eventName,
+                dialogName
+            });
       }
     } catch (final UnknownPropertyException | WrappedTargetException |
         IllegalArgumentException | InvocationTargetException | IllegalAccessException ex) {
@@ -623,6 +664,7 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
   @Override
   public void actionPerformed(final ActionEvent actionEvent) {
     LOGGER.log(Level.FINER, "AddonDialog.actionPerformed()");
+
     handleDialogEvent(actionEvent, EVENT_ACTION_PERFORMED);
   }
 
@@ -636,22 +678,4 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
   public void disposing(final EventObject eventObject) {/* Not yet implemented */
   }
 
-  protected void initializeSupportedEvents(
-      final Class<?> dialogClass, final Map<String, String> supportedEvents) {
-    LOGGER.log(Level.FINER, "AddonDialog.initializeSupportedEvents()");
-    try {
-      for (final var entry : supportedEvents.entrySet()) {
-        final String methodName = "handle".concat(entry.getKey().substring(2));
-        LOGGER.log(Level.FINEST, "AddonDialog.initializeSupportedEvents[{0},{1}]",
-            new Object[]{
-                entry.getValue(),
-                dialogClass.getDeclaredMethod(methodName)
-            });
-        actionsMap.put(entry.getValue(), dialogClass.getDeclaredMethod(methodName));
-      }
-      LOGGER.log(Level.FINEST, "AddonDialog.initializeSupportedEvents Registration completed");
-    } catch (final NoSuchMethodException | SecurityException ex) {
-      LOGGER.log(Level.SEVERE, ex.toString(), ex);
-    }
-  }
 }

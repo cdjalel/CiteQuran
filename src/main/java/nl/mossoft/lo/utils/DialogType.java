@@ -1,8 +1,8 @@
 package nl.mossoft.lo.utils;
 
 public enum DialogType {
-  ABOUTDIALOG("AboutDialog"),
-  INSERTQURANTEXTDIALOG("InsertQuranTextDialog");
+  ABOUTDIALOG("AboutDialog"), ERRORDIALOG("ErrorDialog"), INSERTQURANTEXTDIALOG(
+      "InsertQuranTextDialog");
 
   private final String desc;
 
@@ -12,6 +12,6 @@ public enum DialogType {
 
   @Override
   public String toString() {
-    return this.desc;
+    return "nl.mossoft.lo.dialog." + desc;
   }
 }
