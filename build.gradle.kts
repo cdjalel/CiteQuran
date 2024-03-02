@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("com.palantir.git-version") version "0.15.0"
+    id("com.palantir.git-version") version "3.0.0"
   }
 
 group = "nl.mossoft.lo"
