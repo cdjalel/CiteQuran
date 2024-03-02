@@ -9,11 +9,14 @@ import com.sun.star.awt.XButton;
 import com.sun.star.awt.XCheckBox;
 import com.sun.star.awt.XListBox;
 import com.sun.star.awt.XNumericField;
+import com.sun.star.awt.XProgressBar;
 import com.sun.star.awt.XTextComponent;
+import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.frame.XController;
 import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.style.ParagraphAdjust;
 import com.sun.star.text.XParagraphCursor;
 import com.sun.star.text.XText;
 import com.sun.star.text.XTextCursor;
@@ -28,8 +31,10 @@ import java.awt.GraphicsEnvironment;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import nl.mossoft.lo.utils.AddonDialogTools;
@@ -42,6 +47,7 @@ import nl.mossoft.lo.utils.QuranReader;
 public class InsertQuranTextDialog extends AddonDialog {
 
   private static final String ARABIC = "Arabic";
+  private static final String TRANSLITERATION = "Transliteration";
 
   private static final String INSERT_QURAN_TEXT_DLG = "InsertQuranTextDlg";
   private static final String SURAH_GROUP_BOX = "SurahGroupBox";
@@ -81,7 +87,11 @@ public class InsertQuranTextDialog extends AddonDialog {
       "TransliterationLanguageVersionCheckBox";
   private static final String TRANSLITERATION_LANGUAGE_VERSION_LIST_BOX =
       "TransliterationLanguageVersionListBox";
-  private static final String WRITE_BUTTON = "WriteButton";
+  private static final String MISCELLANEOUS_GROUP_BOX = "MiscGroupBox";
+  private static final String LINE_BY_LINE_LABEL = "LineByLineLabel";
+  private static final String LINE_BY_LINE_CHECK_BOX = "LineByLineCheckBox";
+  private static final String INSERT_BUTTON = "InsertButton";
+  private static final String INSERT_PROGRESS_BAR = "InsertProgressBar";
 
   // Dialog Events
   private static final String ON_ARABIC_FONT_SELECTED = "onArabicFontSelected";
@@ -108,16 +118,18 @@ public class InsertQuranTextDialog extends AddonDialog {
       "onTransliterationLanguageCheckBoxSelected";
   private static final String ON_TRANSLITERATION_LANGUAGE_VERSION_SELECTED =
       "onTransliterationLanguageVersionSelected";
-  private static final String ON_WRITE_BUTTON_PRESSED = "onWriteButtonPressed";
+
+  private static final String ON_LINE_BY_LINE_CHECK_BOX_SELECTED = "onLineByLineCheckBoxSelected";
+  private static final String ON_INSERT_BUTTON_PRESSED = "onInsertButtonPressed";
 
   private static final Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
-  private final boolean selectedTransliterationInd = false;
-  private final String selectedTransliterationLanguage = "";
-  private final String selectedTransliterationLanguageVersion = "";
+  private boolean selectedTransliterationInd = false;
+  private String selectedTransliterationLanguage = "";
+  private String selectedTransliterationLanguageVersion = "";
   private final boolean selectedLineNumberInd = true;
-  private final boolean selectedLineByLineInd = true;
-  private final String selectedLatinFontName = "";
+  private boolean selectedLineByLineInd = true;
+  private String selectedLatinFontName = "";
   private String selectedArabicFontName = "";
   private boolean selectedTranslationInd = false;
   private String selectedTranslationLanguage = "";
@@ -137,6 +149,11 @@ public class InsertQuranTextDialog extends AddonDialog {
   private String defaultLatinFontName;
   private double defaultLatinFontSize;
 
+  private XPropertySet progressBar = null;
+
+  private static final String LEFT_PARENTHESIS = new String(Character.toChars(64830));
+  private static final String RIGHT_PARENTHESIS = new String(Character.toChars(64831));
+
   /**
    * Instantiates a new Addon dialog.
    *
@@ -146,16 +163,6 @@ public class InsertQuranTextDialog extends AddonDialog {
   protected InsertQuranTextDialog(
       final XComponentContext componentContext, final Locale locale) {
     super(componentContext, locale);
-  }
-
-
-  @SuppressWarnings("unused")
-  protected void handleArabicFontSelected() {
-    LOGGER.log(Level.FINER, "InsertQuranTextDialog.handleArabicFontSelected()");
-    final XListBox listBox = getControl(
-        controlContainer, XListBox.class, ARABIC_FONT_LIST_BOX);
-
-    selectedArabicFontName = listBox.getSelectedItem();
   }
 
   @Override
@@ -215,12 +222,18 @@ public class InsertQuranTextDialog extends AddonDialog {
         ALIGNMENT_RIGHT, false, true);
     insertNumericField(LATIN_FONT_SIZE_NUMERIC_FIELD, 217, 90, 50, 10, true);
 
-    // Write Group
-    insertButton(WRITE_BUTTON, 250, 152, 40, 15, rb.getString(WRITE_BUTTON), true);
+    // Misc GroupBox
+    insertGroupBox(MISCELLANEOUS_GROUP_BOX, 150, 123, 142, 28, rb.getString(MISCELLANEOUS_GROUP_BOX),
+        true);
+    insertLabel(LINE_BY_LINE_LABEL, 150, 133, 50, 10, rb.getString(LINE_BY_LINE_LABEL),
+        ALIGNMENT_RIGHT, false, true);
+    insertCheckBox(LINE_BY_LINE_CHECK_BOX, 205, 133, 10, 10, true);
+
+    // Insert Group
+    insertButton(INSERT_BUTTON, 4, 152, 40, 15, rb.getString(INSERT_BUTTON), true);
+    progressBar = insertProgressBar(INSERT_PROGRESS_BAR, 46, 152, 252, 18);
 
     LOGGER.log(Level.FINER, "InsertQuranTextDialog.addDialogControls completed");
-
-
   }
 
   @Override
@@ -254,8 +267,12 @@ public class InsertQuranTextDialog extends AddonDialog {
     initializeTransliterationLanguageVersionListBox();
     initializeArabicFontListBox();
     initializeArabicFontSize();
+    initializeLatinFontListBox();
+    initializeLatinFontSize();
+    initializeLineByLineCheckBox();
 
-    initializeWriteButton();
+    initializeInsertButton();
+    initializeInsertSurahProgressBar();
 
     LOGGER.log(Level.FINER, "InsertQuranTextDialog.initializeDialog() Completed");
   }
@@ -431,7 +448,7 @@ public class InsertQuranTextDialog extends AddonDialog {
       int k = 0;
       for (final String fn : fns) {
         final String[] parts = fn.split("[.]");
-        if (!parts[1].equals(ARABIC)) {
+        if (!parts[1].equals(ARABIC) && !parts[1].equals(TRANSLITERATION)) {
           listBox.addItem(parts[1] + " (" + parts[2].replace("_", " ") + ")", (short) k);
           k++;
         }
@@ -450,11 +467,47 @@ public class InsertQuranTextDialog extends AddonDialog {
   private void initializeTransliterationLanguageCheckBox() {
     LOGGER.log(
         Level.FINER, "InsertQuranTextDialog.initializeTransliterationLanguageCheckBox()");
+    final XCheckBox checkBox = getControl(controlContainer, XCheckBox.class,
+        TRANSLITERATION_LANGUAGE_VERSION_CHECK_BOX);
+
+    checkBox.setState(boolean2Short(false));
+    selectedTransliterationInd = short2Boolean(checkBox.getState());
+
+    registerDialogEvent(TRANSLITERATION_LANGUAGE_VERSION_CHECK_BOX, controlContainer,
+        XCheckBox.class, ON_TRANSLITERATION_LANGUAGE_CHECK_BOX_SELECTED, this);
   }
 
   private void initializeTransliterationLanguageVersionListBox() {
     LOGGER.log(Level.FINER,
         "InsertQuranTextDialog.initializeTransliterationLanguageVersionListBox()");
+    new Thread(() -> {
+      final XListBox listBox = getControl(
+          controlContainer, XListBox.class, TRANSLITERATION_LANGUAGE_VERSION_LIST_BOX);
+
+      final List<String> fns = getQuranTxtFiles();
+      int k = 0;
+      for (final String fn : fns) {
+        final String[] parts = fn.split("[.]");
+        if (parts[1].equals(TRANSLITERATION)) {
+          listBox.addItem(parts[1] + " (" + parts[2].replace("_", " ") + ")", (short) k);
+          k++;
+        }
+      }
+
+      if (0 == k) {
+        // no transliteration files. Disable list.
+        enableControl(controlContainer, TRANSLITERATION_LANGUAGE_VERSION_LIST_BOX, false);
+        return;
+      }
+
+      listBox.selectItemPos((short) 0, true);
+
+      selectedTransliterationLanguage = getItemLanguague(listBox.getSelectedItem());
+      selectedTransliterationLanguageVersion = getItemVersion(listBox.getSelectedItem());
+
+      registerDialogEvent(TRANSLITERATION_LANGUAGE_VERSION_LIST_BOX, controlContainer,
+          XListBox.class, ON_TRANSLITERATION_LANGUAGE_VERSION_SELECTED, this);
+    }).start();
   }
 
   private void initializeArabicFontListBox() {
@@ -468,7 +521,8 @@ public class InsertQuranTextDialog extends AddonDialog {
 
       for (int i = 0; i < fonts.length; i++) {
         if (new Font(fonts[i], Font.PLAIN, 10).canDisplay(
-            0x0627)) { // If Alif -> Arabic support
+            0x0627)) { // If Alif -> Arabic support ,
+            // DCH TODO: && can handle Quran. Or ship the fonts within the exention and load them
           listBox.addItem(fonts[i], (short) i);
           if (fonts[i].equals(getDefaultArabicFontName())) {
             listBox.selectItemPos((short) i, true);
@@ -492,17 +546,90 @@ public class InsertQuranTextDialog extends AddonDialog {
     final XNumericField sizeField = getControl(
         controlContainer, XNumericField.class, ARABIC_FONT_SIZE_NUMERIC_FIELD);
 
-    sizeField.setValue(getDefaultArabicFontsize());
-    selectedArabicFontSize = getDefaultArabicFontsize();
+    sizeField.setValue(getDefaultArabicFontSize());
+    selectedArabicFontSize = getDefaultArabicFontSize();
 
     registerDialogEvent(ARABIC_FONT_SIZE_NUMERIC_FIELD, controlContainer, XTextComponent.class,
         ON_ARABIC_FONT_SIZE_NUMERIC_FIELD_CHANGED, this);
   }
 
-  private void initializeWriteButton() {
-    LOGGER.log(Level.FINER, "InsertQuranTextDialog.initializeWriteButton");
+  private void initializeLatinFontListBox() {
+    LOGGER.log(Level.FINER, "InsertQuranTextDialog.initializeLatinFontListBox()");
+    new Thread(() -> {
+      final XListBox listBox = getControl(
+          controlContainer, XListBox.class, LATIN_FONT_LIST_BOX);
+      final Locale locale = new Locale.Builder().setScript("LATN").build();
+      final String[] fonts = GraphicsEnvironment.getLocalGraphicsEnvironment()
+          .getAvailableFontFamilyNames(locale);
+
+      for (int i = 0; i < fonts.length; i++) {
+        listBox.addItem(fonts[i], (short) i);
+        if (fonts[i].equals(getDefaultLatinFontName())) {
+          listBox.selectItemPos((short) i, true);
+        }
+      }
+      listBox.selectItem(getDefaultLatinFontName(), true);
+      selectedLatinFontName = listBox.getSelectedItem();
+
+      registerDialogEvent(LATIN_FONT_LIST_BOX, controlContainer, XListBox.class,
+          ON_LATIN_FONT_SELECTED, this);
+
+    }).start();
+  }
+
+  /**
+   * Initialize the Latin Fontsize NumericField.
+   */
+  private void initializeLatinFontSize() {
+    LOGGER.log(Level.FINER, "InsertQuranTextDialog.initializeLatinFontSize()");
+    final XNumericField sizeField = getControl(
+        controlContainer, XNumericField.class, LATIN_FONT_SIZE_NUMERIC_FIELD);
+
+    sizeField.setValue(getDefaultLatinFontSize());
+    selectedLatinFontSize = getDefaultLatinFontSize();
+
+    registerDialogEvent(LATIN_FONT_SIZE_NUMERIC_FIELD, controlContainer, XTextComponent.class,
+        ON_LATIN_FONT_SIZE_NUMERIC_FIELD_CHANGED, this);
+  }
+
+  private void initializeLineByLineCheckBox() {
+    LOGGER.log(Level.FINER, "InsertQuranTextDialog.initializeLineByLineCheckBox()");
+    final XCheckBox checkBox = getControl(
+        controlContainer, XCheckBox.class, LINE_BY_LINE_CHECK_BOX);
+
+    checkBox.setState(boolean2Short(true));
+    selectedLineByLineInd = short2Boolean(checkBox.getState());
+
+    registerDialogEvent(LINE_BY_LINE_CHECK_BOX, controlContainer, XCheckBox.class,
+        ON_LINE_BY_LINE_CHECK_BOX_SELECTED, this);
+  }
+
+  private void initializeInsertButton() {
+    LOGGER.log(Level.FINER, "InsertQuranTextDialog.initializeInsertButton");
     registerDialogEvent(
-        WRITE_BUTTON, controlContainer, XButton.class, ON_WRITE_BUTTON_PRESSED, this);
+        INSERT_BUTTON, controlContainer, XButton.class, ON_INSERT_BUTTON_PRESSED, this);
+  }
+
+  private void setProgressBarValue(int v) {
+    if (null != progressBar) {
+      try {
+        progressBar.setPropertyValue("ProgressValue", Integer.valueOf(v));
+      } catch (final Exception ex) {
+        LOGGER.log(Level.SEVERE, ex.toString(), ex);
+      }
+    }
+  }
+
+  private void initializeInsertSurahProgressBar() {
+    if (null != progressBar) {
+      try {
+        progressBar.setPropertyValue("ProgressValue", Integer.valueOf(0));
+        progressBar.setPropertyValue("ProgressValueMin", Integer.valueOf(0));
+        progressBar.setPropertyValue("ProgressValueMax", Integer.valueOf(100));
+      } catch (final Exception ex) {
+        LOGGER.log(Level.SEVERE, ex.toString(), ex);
+      }
+    }
   }
 
   /**
@@ -556,7 +683,7 @@ public class InsertQuranTextDialog extends AddonDialog {
    *
    * @return the fontsize
    */
-  private double getDefaultArabicFontsize() {
+  private double getDefaultArabicFontSize() {
     return defaultArabicFontSize;
   }
 
@@ -589,16 +716,6 @@ public class InsertQuranTextDialog extends AddonDialog {
       toField.setValue(QuranReader.getSurahSize(selectedSurahNo));
     }
     selectedAyatTo = Math.round(toField.getValue());
-  }
-
-  @SuppressWarnings("unused")
-  protected void handleArabicFontSizeNumericFieldChanged() {
-    final XNumericField sizeField = getControl(
-        controlContainer, XNumericField.class, ARABIC_FONT_SIZE_NUMERIC_FIELD);
-    final XTextComponent sizeTextComponent = getControl(controlContainer, XTextComponent.class,
-        ARABIC_FONT_SIZE_NUMERIC_FIELD);
-
-    selectedArabicFontSize = sizeField.getValue();
   }
 
   @SuppressWarnings("unused")
@@ -715,32 +832,65 @@ public class InsertQuranTextDialog extends AddonDialog {
     enableControl(
         controlContainer, TRANSLATION_LANGUAGE_VERSION_LABEL, selectedTranslationInd);
 
-    // TODO
-    //    enableControl(controlContainer, D026_LATIN_FONT_GROUPBOX,
-    //        selectedTransliterationInd || selectedTranslationInd);
-    //    enableControl(controlContainer, D027_LATIN_FONT_LABEL, selectedTransliterationInd
-    //    || selectedTranslationInd);
-    //    enableControl(controlContainer, D028_LATIN_FONT_LISTBOX,
-    //        selectedTransliterationInd || selectedTranslationInd);
-    //    enableControl(controlContainer, D029_LATIN_FONTSIZE_LABEL,
-    //        selectedTransliterationInd || selectedTranslationInd);
-    //    enableControl(controlContainer, D030_LATIN_FONTSIZE_NUMFLD,
-    //        selectedTransliterationInd || selectedTranslationInd);
-    //    enableControl(controlContainer, D034_OK_BUTTON,
-    //        selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
-    //    enableControl(controlContainer, D031_MISCELLANEOUS_GROUPBOX,
-    //        selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
-    //    enableControl(controlContainer, D032_LINE_BY_LINE_LABEL,
-    //        selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
-    //    enableControl(controlContainer, D033_LINE_BY_LINE_CHECKBOX,
-    //        selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
+    enableControl(controlContainer, LATIN_FONT_GROUP_BOX,
+        selectedTransliterationInd || selectedTranslationInd);
+    enableControl(controlContainer, LATIN_FONT_LABEL, selectedTransliterationInd
+        || selectedTranslationInd);
+    enableControl(controlContainer, LATIN_FONT_LIST_BOX,
+        selectedTransliterationInd || selectedTranslationInd);
+    enableControl(controlContainer, LATIN_FONT_SIZE_LABEL,
+        selectedTransliterationInd || selectedTranslationInd);
+    enableControl(controlContainer, LATIN_FONT_SIZE_NUMERIC_FIELD,
+        selectedTransliterationInd || selectedTranslationInd);
 
+    enableControl(controlContainer, MISCELLANEOUS_GROUP_BOX,
+        selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
+
+    enableControl(controlContainer, LINE_BY_LINE_LABEL,
+        selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
+    enableControl(controlContainer, LINE_BY_LINE_CHECK_BOX,
+        selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
+
+    enableControl(controlContainer, INSERT_BUTTON,
+        selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
   }
 
   @SuppressWarnings("unused")
   protected void handleTransliterationLanguageCheckBoxSelected() {
     LOGGER.log(
         Level.FINER, "InsertQuranTextDialog.handleTransliterationLanguageCheckBoxSelected()");
+    final XCheckBox checkBox = getControl(
+        controlContainer, XCheckBox.class, TRANSLITERATION_LANGUAGE_VERSION_CHECK_BOX);
+
+    checkBox.setState(boolean2Short(!selectedTransliterationInd));
+    selectedTransliterationInd = short2Boolean(checkBox.getState());
+
+    enableControl(
+        controlContainer, TRANSLITERATION_LANGUAGE_VERSION_LIST_BOX, selectedTransliterationInd);
+    enableControl(
+        controlContainer, TRANSLITERATION_LANGUAGE_VERSION_LABEL, selectedTransliterationInd);
+
+    enableControl(controlContainer, LATIN_FONT_GROUP_BOX,
+        selectedTransliterationInd || selectedTranslationInd);
+    enableControl(controlContainer, LATIN_FONT_LABEL, selectedTransliterationInd
+        || selectedTranslationInd);
+    enableControl(controlContainer, LATIN_FONT_LIST_BOX,
+        selectedTransliterationInd || selectedTranslationInd);
+    enableControl(controlContainer, LATIN_FONT_SIZE_LABEL,
+        selectedTransliterationInd || selectedTranslationInd);
+    enableControl(controlContainer, LATIN_FONT_SIZE_NUMERIC_FIELD,
+        selectedTransliterationInd || selectedTranslationInd);
+
+    enableControl(controlContainer, MISCELLANEOUS_GROUP_BOX,
+        selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
+
+    enableControl(controlContainer, LINE_BY_LINE_LABEL,
+        selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
+    enableControl(controlContainer, LINE_BY_LINE_CHECK_BOX,
+        selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
+
+    enableControl(controlContainer, INSERT_BUTTON,
+        selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
   }
 
   @SuppressWarnings("unused")
@@ -758,21 +908,254 @@ public class InsertQuranTextDialog extends AddonDialog {
     enableControl(controlContainer, ARABIC_FONT_LIST_BOX, selectedArabicInd);
     enableControl(controlContainer, ARABIC_FONT_SIZE_LABEL, selectedArabicInd);
     enableControl(controlContainer, ARABIC_FONT_SIZE_NUMERIC_FIELD, selectedArabicInd);
-    enableControl(controlContainer, WRITE_BUTTON,
+
+    enableControl(controlContainer, MISCELLANEOUS_GROUP_BOX,
+        selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
+    enableControl(controlContainer, LINE_BY_LINE_LABEL,
+        selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
+    enableControl(controlContainer, LINE_BY_LINE_CHECK_BOX,
         selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
 
-    // TODO
-    //    enableControl(controlContainer, D031_MISCELLANEOUS_GROUPBOX,
-    //        selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
-    //    enableControl(controlContainer, D032_LINE_BY_LINE_LABEL,
-    //        selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
-    //    enableControl(controlContainer, D033_LINE_BY_LINE_CHECKBOX,
-    //        selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
+    enableControl(controlContainer, INSERT_BUTTON,
+        selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
   }
 
   @SuppressWarnings("unused")
-  protected void handleWriteButtonPressed() {
-    LOGGER.log(Level.FINER, "InsertQuranTextDialog.handleWriteButtonPressed()");
+  protected void handleArabicFontSelected() {
+    LOGGER.log(Level.FINER, "InsertQuranTextDialog.handleArabicFontSelected()");
+    final XListBox listBox = getControl(
+        controlContainer, XListBox.class, ARABIC_FONT_LIST_BOX);
+
+    selectedArabicFontName = listBox.getSelectedItem();
+  }
+
+  @SuppressWarnings("unused")
+  protected void handleArabicFontSizeNumericFieldChanged() {
+    LOGGER.log(Level.FINER, this.getClass().getName() + "." +
+        new Object(){}.getClass().getEnclosingMethod().getName());
+    final XNumericField sizeField = getControl(
+        controlContainer, XNumericField.class, ARABIC_FONT_SIZE_NUMERIC_FIELD);
+    final XTextComponent sizeTextComponent = getControl(controlContainer, XTextComponent.class,
+        ARABIC_FONT_SIZE_NUMERIC_FIELD);
+
+    selectedArabicFontSize = sizeField.getValue();
+  }
+
+  @SuppressWarnings("unused")
+  protected void handleLatinFontSelected() {
+    LOGGER.log(Level.FINER, this.getClass().getName() + "." +
+        new Object(){}.getClass().getEnclosingMethod().getName());
+    final XListBox listBox = getControl(
+        controlContainer, XListBox.class, LATIN_FONT_LIST_BOX);
+
+    selectedLatinFontName = listBox.getSelectedItem();
+  }
+
+  @SuppressWarnings("unused")
+  protected void handleLatinFontSizeNumericFieldChanged() {
+    LOGGER.log(Level.FINER, this.getClass().getName() + "." +
+        new Object(){}.getClass().getEnclosingMethod().getName());
+    final XNumericField sizeField = getControl(
+        controlContainer, XNumericField.class, LATIN_FONT_SIZE_NUMERIC_FIELD);
+    final XTextComponent sizeTextComponent = getControl(controlContainer, XTextComponent.class,
+        LATIN_FONT_SIZE_NUMERIC_FIELD);
+
+    selectedLatinFontSize = sizeField.getValue();
+  }
+
+  @SuppressWarnings("unused")
+  protected void handleLineByLineCheckBoxSelected() {
+    LOGGER.log(Level.FINER, "InsertQuranTextDialog.handleLineByLineCheckBoxSelecte()");
+    final XCheckBox checkBox = getControl(
+        controlContainer, XCheckBox.class, LINE_BY_LINE_CHECK_BOX);
+
+    checkBox.setState(boolean2Short(!selectedLineByLineInd));
+    selectedLineByLineInd = short2Boolean(checkBox.getState());
+  }
+
+  @SuppressWarnings("unused")
+  protected void handleInsertButtonPressed() {
+    LOGGER.log(Level.FINER, "InsertQuranTextDialog.handleInsertButtonPressed()");
+    insertSurah(selectedSurahNo);
     dialog.endExecute();
   }
+
+  public void insertSurah(int surahNumber) {
+      final XTextDocument textDoc = DocumentHandler.getCurrentDocument(componentContext);
+      XController controller = textDoc.getCurrentController();
+      XTextViewCursorSupplier textViewCursorSupplier = DocumentHandler.getCursorSupplier(controller);
+      XTextViewCursor textViewCursor = textViewCursorSupplier.getViewCursor();
+      XText text = textViewCursor.getText();
+      XTextCursor textCursor = text.createTextCursorByRange(textViewCursor.getStart());
+      XParagraphCursor paragraphCursor = (XParagraphCursor)UnoRuntime.queryInterface(XParagraphCursor.class, textCursor);
+      XPropertySet paragraphCursorPropertySet = DocumentHandler.getPropertySet(paragraphCursor);
+
+      try {
+         paragraphCursorPropertySet.setPropertyValue("CharFontName", selectedLatinFontName);
+         paragraphCursorPropertySet.setPropertyValue("CharFontNameComplex", selectedArabicFontName);
+         paragraphCursorPropertySet.setPropertyValue("CharHeight", selectedLatinFontSize);
+         paragraphCursorPropertySet.setPropertyValue("CharHeightComplex", selectedArabicFontSize);
+         long from = selectedAyatAllInd ? 1L : selectedAyatFrom;
+         long to = selectedAyatAllInd ? QuranReader.getSurahSize(surahNumber) + 1L : selectedAyatTo + 1L;
+         if (selectedLineByLineInd) {
+            insertSurahLineByLine(surahNumber, text, paragraphCursor, from, to);
+         } else {
+            insertSurahAsOneBlock(surahNumber, text, paragraphCursor, from, to);
+         }
+      } catch (UnknownPropertyException | PropertyVetoException | WrappedTargetException | com.sun.star.lang.IllegalArgumentException e) {
+         e.printStackTrace();
+      }
+   }
+
+  private static short getLanguageWritingMode(String language) {
+    Map<String, Short> directionmap = new LinkedHashMap();
+    directionmap.put("Arabic", Short.valueOf((short)1));
+    directionmap.put("English", Short.valueOf((short)0));
+    directionmap.put("Dutch", Short.valueOf((short)0));
+    directionmap.put("Indonesian", Short.valueOf((short)0));
+    directionmap.put("Urdu", Short.valueOf((short)1));
+    return directionmap.containsKey(language) ? (Short)directionmap.get(language) : 0;
+  }
+
+   private static int getFontNumberBase(String fontname) {
+      Map<String, Integer> fontmap = new LinkedHashMap();
+      fontmap.put("Al Qalam Quran Majeed", 1776);
+      fontmap.put("Al Qalam Quran Majeed 1", 1776);
+      fontmap.put("Al Qalam Quran Majeed 2", 1776);
+      fontmap.put("Noto Nastaliq Urdu", 1632);
+      fontmap.put("KFGQPC Uthmanic Script HAFS", 48);
+      fontmap.put("me_quran", 1632);
+      fontmap.put("Scheherazade", 1632);
+      fontmap.put("Scheherazade quran", 1632);
+      return fontmap.containsKey(fontname) ? (Integer)fontmap.get(fontname) : 48;
+   }
+
+  public static String numToAyatNumber(long n, String language, String fontname) {
+    int base = getFontNumberBase(fontname);
+
+    StringBuilder as;
+    for(as = new StringBuilder(); n > 0L; n /= 10L) {
+       as.append(Character.toChars(base + (int)(n % 10L)));
+    }
+
+    return as.reverse().toString();
+  }
+
+  private String getBismillah(String language, String version) {
+    QuranReader qr = new QuranReader(language, version, componentContext);
+    return qr.getBismillah();
+  }
+
+  private String getAyahLine(int surahno, long ayahno, String language, String version, String fontName) {
+    QuranReader qr = new QuranReader(language, version, componentContext);
+    String line = qr.getAyahNoOfSuraNo(surahno, ayahno);
+    if (selectedLineNumberInd) {
+      if (getLanguageWritingMode(language) == 1) {
+        line = line + " " + RIGHT_PARENTHESIS + numToAyatNumber(ayahno, language, fontName) + LEFT_PARENTHESIS + " ";
+      } else {
+         line = "(" + numToAyatNumber(ayahno, language, fontName) + ") " + line;
+      }
+    }
+
+    return line;
+  }
+
+  private void insertBismillahSurahLineByLIne(XText text, XParagraphCursor paragraphCursor) {
+      try {
+         if (selectedArabicInd) {
+            insertParagraph(text, paragraphCursor, getBismillah(selectedArabicLanguage, selectedArabicLanguageVersion), selectedArabicLanguage, selectedArabicFontName, selectedArabicFontSize);
+         }
+
+         if (selectedTranslationInd) {
+            insertParagraph(text, paragraphCursor, getBismillah(selectedTranslationLanguage, selectedTranslationLanguageVersion), selectedTranslationLanguage, selectedLatinFontName, selectedLatinFontSize);
+         }
+
+         if (selectedTransliterationInd) {
+            insertParagraph(text, paragraphCursor, getBismillah(selectedTransliterationLanguage, selectedTransliterationLanguageVersion), selectedTranslationLanguage, selectedLatinFontName, selectedLatinFontSize);
+         }
+      } catch (UnknownPropertyException | PropertyVetoException | WrappedTargetException | com.sun.star.lang.IllegalArgumentException e) {
+         e.printStackTrace();
+      }
+
+   }
+
+   private void insertParagraph(XText text, XParagraphCursor paragraphCursor, String paragraph, String language, String fontName, double fontSize) throws UnknownPropertyException, PropertyVetoException, WrappedTargetException {
+      paragraphCursor.gotoEndOfParagraph(false);
+      text.insertControlCharacter(paragraphCursor, (short)0, false);
+      XPropertySet paragraphCursorPropertySet = DocumentHandler.getPropertySet(paragraphCursor);
+      if (getLanguageWritingMode(language) == 0) {
+         paragraphCursorPropertySet.setPropertyValue("ParaAdjust", ParagraphAdjust.LEFT);
+         paragraphCursorPropertySet.setPropertyValue("WritingMode", Short.valueOf((short)0));
+         paragraphCursorPropertySet.setPropertyValue("CharFontName", fontName);
+         paragraphCursorPropertySet.setPropertyValue("CharHeight", fontSize);
+      } else {
+         paragraphCursorPropertySet.setPropertyValue("ParaAdjust", ParagraphAdjust.RIGHT);
+         paragraphCursorPropertySet.setPropertyValue("WritingMode", Short.valueOf((short)1));
+         paragraphCursorPropertySet.setPropertyValue("CharFontNameComplex", fontName);
+         paragraphCursorPropertySet.setPropertyValue("CharHeightComplex", fontSize);
+      }
+
+      text.insertString(paragraphCursor, paragraph, false);
+   }
+
+   private void insertSurahAsOneBlock(int surahNumber, XText text, XParagraphCursor paragraphCursor, long from, long to) {
+      if (selectedArabicInd) {
+         insertSurahTextBlock(surahNumber, text, paragraphCursor, from, to, selectedArabicLanguage, selectedArabicLanguageVersion, selectedArabicFontName, selectedArabicFontSize);
+      }
+
+      if (selectedTranslationInd) {
+         insertSurahTextBlock(surahNumber, text, paragraphCursor, from, to, selectedTranslationLanguage, selectedTranslationLanguageVersion, selectedLatinFontName, selectedLatinFontSize);
+      }
+
+      if (selectedTransliterationInd) {
+         insertSurahTextBlock(surahNumber, text, paragraphCursor, from, to, selectedTransliterationLanguage, selectedTransliterationLanguageVersion, selectedLatinFontName, selectedArabicFontSize);
+      }
+
+   }
+
+   private void insertSurahLineByLine(int surahNumber, XText text, XParagraphCursor paragraphCursor, long from, long to) {
+      try {
+         if (from == 1L && surahNumber != 1 && surahNumber != 9) {
+            insertBismillahSurahLineByLIne(text, paragraphCursor);
+         }
+
+         for(long l = from; l < to; ++l) {
+            setProgressBarValue((int)(100L * l / (to - from + 1L)));
+            if (selectedArabicInd) {
+               insertParagraph(text, paragraphCursor, getAyahLine(surahNumber, l, selectedArabicLanguage, selectedArabicLanguageVersion, selectedArabicFontName), selectedArabicLanguage, selectedArabicFontName, selectedArabicFontSize);
+            }
+
+            if (selectedTranslationInd) {
+               insertParagraph(text, paragraphCursor, getAyahLine(surahNumber, l, selectedTranslationLanguage, selectedTranslationLanguageVersion, selectedLatinFontName), selectedTranslationLanguage, selectedLatinFontName, selectedLatinFontSize);
+            }
+
+            if (selectedTransliterationInd) {
+               insertParagraph(text, paragraphCursor, getAyahLine(surahNumber, l, selectedTransliterationLanguage, selectedTransliterationLanguageVersion, selectedLatinFontName), selectedTransliterationLanguage, selectedLatinFontName, selectedLatinFontSize);
+            }
+         }
+      } catch (UnknownPropertyException | PropertyVetoException | WrappedTargetException | com.sun.star.lang.IllegalArgumentException e) {
+         e.printStackTrace();
+      }
+   }
+
+   private void insertSurahTextBlock(int surahNumber, XText text, XParagraphCursor paragraphCursor, long from, long to, String language, String languageVersion, String fontName, double fontSize) {
+      try {
+         StringBuilder lb = new StringBuilder();
+
+         for(long l = from; l < to; ++l) {
+            if (l == 1L && surahNumber != 1 && surahNumber != 9) {
+               lb.append(getBismillah(language, languageVersion));
+               lb.append("\n");
+            }
+
+            setProgressBarValue((int)(100L * l / (to - from + 1L)));
+            lb.append(getAyahLine(surahNumber, l, language, languageVersion, fontName));
+            lb.append(" ");
+         }
+
+         insertParagraph(text, paragraphCursor, lb.toString() + "\n", language, fontName, fontSize);
+      } catch (UnknownPropertyException | PropertyVetoException | WrappedTargetException | com.sun.star.lang.IllegalArgumentException e) {
+         e.printStackTrace();
+      }
+   }
 }

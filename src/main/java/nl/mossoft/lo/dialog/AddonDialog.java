@@ -9,6 +9,7 @@ import com.sun.star.awt.XControlContainer;
 import com.sun.star.awt.XControlModel;
 import com.sun.star.awt.XDialog;
 import com.sun.star.awt.XItemListener;
+import com.sun.star.awt.XProgressBar;
 import com.sun.star.awt.XTextListener;
 import com.sun.star.awt.XToolkit;
 import com.sun.star.awt.XTopWindow;
@@ -623,6 +624,38 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
     } catch (final Exception ex) {
       LOGGER.log(Level.SEVERE, ex.toString(), ex);
     }
+  }
+
+  protected XPropertySet insertProgressBar(
+      final String dlgName, final int x, final int y, final int width, final int height) {
+    XPropertySet progressBar = null;
+    LOGGER.log(Level.FINER, "AddonDialog.insertProgressBar()");
+    try {
+      final Object progressBarModel = multiServiceFactory.createInstance("com.sun.star.awt.UnoControlProgressBarModel");
+      final XMultiPropertySet mps = AddonDialogTools.getMultiPropertSet(progressBarModel);
+      mps.setPropertyValues(new String[]{
+          PROP_HEIGHT,
+          PROP_NAME,
+          PROP_POSITION_X,
+          PROP_POSITION_Y,
+          PROP_WIDTH,
+      }, new Object[]{
+          Integer.valueOf(height),
+          dlgName,
+          Integer.valueOf(x),
+          Integer.valueOf(y),
+          Integer.valueOf(width),
+      });
+
+      // The controlmodel is not really available until inserted to the Dialog container
+      nameContainer.insertByName(dlgName, progressBarModel);
+      progressBar = UnoRuntime.queryInterface(XPropertySet.class, progressBarModel);
+
+      AddonDialogTools.showProperties(controlContainer, dlgName);
+    } catch (final Exception ex) {
+      LOGGER.log(Level.SEVERE, "Unexpected Exception: " + ex.toString(), ex);
+    }
+    return progressBar;
   }
 
   @Override
