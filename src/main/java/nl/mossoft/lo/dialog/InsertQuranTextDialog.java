@@ -210,17 +210,17 @@ public class InsertQuranTextDialog extends AddonDialog {
 
     // Arabic Font GroupBox
     //insertGroupBox(ARABIC_FONT_GROUP_BOX, 150, 5, 142, 59, rb.getString(ARABIC_FONT_GROUP_BOX), true);
-    insertLabel(ARABIC_FONT_LABEL, 152, 42, 34, 10, rb.getString(ARABIC_FONT_LABEL),
+    insertLabel(ARABIC_FONT_LABEL, 150, 42, 34, 10, rb.getString(ARABIC_FONT_LABEL),
         ALIGNMENT_RIGHT, false, true);
-    insertListBox(ARABIC_FONT_LIST_BOX, 190, 42, 82, 10, true);
-    insertNumericField(ARABIC_FONT_SIZE_NUMERIC_FIELD, 274, 42, 20, 10, true);
+    insertListBox(ARABIC_FONT_LIST_BOX, 188, 42, 82, 10, true);
+    insertNumericField(ARABIC_FONT_SIZE_NUMERIC_FIELD, 272, 42, 22, 10, true);
 
     // Latin Font GroupBox
     // insertGroupBox(LATIN_FONT_GROUP_BOX, 150, 64, 142, 59, rb.getString(LATIN_FONT_GROUP_BOX), true);
-    insertLabel(LATIN_FONT_LABEL, 152, 57, 34, 10, rb.getString(LATIN_FONT_LABEL),
+    insertLabel(LATIN_FONT_LABEL, 150, 57, 34, 10, rb.getString(LATIN_FONT_LABEL),
         ALIGNMENT_RIGHT, false, true);
-    insertListBox(LATIN_FONT_LIST_BOX, 190, 57, 82, 10, true);
-    insertNumericField(LATIN_FONT_SIZE_NUMERIC_FIELD, 274, 57, 20, 10, true);
+    insertListBox(LATIN_FONT_LIST_BOX, 188, 57, 82, 10, true);
+    insertNumericField(LATIN_FONT_SIZE_NUMERIC_FIELD, 272, 57, 22, 10, true);
 
     // Misc GroupBox
     //insertGroupBox(MISCELLANEOUS_GROUP_BOX, 150, 123, 142, 28, rb.getString(MISCELLANEOUS_GROUP_BOX), true);
@@ -294,16 +294,35 @@ public class InsertQuranTextDialog extends AddonDialog {
     } catch (final UnknownPropertyException | WrappedTargetException e) {
       defaultArabicFontSize = 10;
     }
+
     try {
-      defaultArabicFontName = (String) paragraphCursorPropertySet.getPropertyValue(
+      defaultArabicFontName = "KFGQPC HAFS Uthmanic Script";
+      boolean available = false;
+
+      // Check if the font is available. TODO: pack & install it otherwise.
+      final Locale locale = new Locale.Builder().setScript("ARAB").build();
+      final String[] fonts = GraphicsEnvironment.getLocalGraphicsEnvironment()
+          .getAvailableFontFamilyNames(locale);
+
+      for (int i = 0; i < fonts.length; i++) {
+        if (fonts[i].equals(defaultArabicFontName)) {
+          available = true;
+          break;
+        }
+      }
+
+      if (!available) {
+        defaultArabicFontName = (String) paragraphCursorPropertySet.getPropertyValue(
           PROP_CHAR_FONT_NAME_COMPLEX);
+      }
     } catch (final UnknownPropertyException | WrappedTargetException e) {
       defaultArabicFontName = "No Default set";
     }
+
     try {
       defaultLatinFontName = (String) paragraphCursorPropertySet.getPropertyValue(
           PROP_CHAR_FONT_NAME);
-    } catch (final UnknownPropertyException | WrappedTargetException e) {
+    } catch (final UnknownPropertyException | WrappedTargetException ex) {
       defaultLatinFontName = "No Default set";
     }
     try {
@@ -592,7 +611,7 @@ public class InsertQuranTextDialog extends AddonDialog {
     final XCheckBox checkBox = getControl(
         controlContainer, XCheckBox.class, LINE_BY_LINE_CHECK_BOX);
 
-    checkBox.setState(boolean2Short(true));
+    checkBox.setState(boolean2Short(false));
     selectedLineByLineInd = short2Boolean(checkBox.getState());
 
     registerDialogEvent(LINE_BY_LINE_CHECK_BOX, controlContainer, XCheckBox.class,
@@ -1023,7 +1042,7 @@ public class InsertQuranTextDialog extends AddonDialog {
       fontmap.put("Al Qalam Quran Majeed 1", 1776);
       fontmap.put("Al Qalam Quran Majeed 2", 1776);
       fontmap.put("Noto Nastaliq Urdu", 1632);
-      fontmap.put("KFGQPC Uthmanic Script HAFS", 48);
+      fontmap.put("KFGQPC HAFS Uthmanic Script", 48);
       fontmap.put("me_quran", 1632);
       fontmap.put("Scheherazade", 1632);
       fontmap.put("Scheherazade quran", 1632);
