@@ -1,5 +1,21 @@
-# QuranLO
-LibreOffice extension to add Qur'an text to a document. It allows you to select a complete 
+# CiteQuranOXT
+CiteQuranOXT is an open source LibreOffice extention under GPLv3 based on QuranLOAddon.
+CiteQuranOXT redesigns the GUI and adds a new feature that allows users to:
+
+- Searching in the Quran text
+- Show matching Ayat
+- Select and insert a matching Aya in the current LibreOffice Writer document.
+- By default, the inserted Quran text uses the **Amiri Quran Colored** font when available. 
+
+We strongly recommend to download and install the **Amiri Quran"** font.
+Debian/Ubuntu like Linux distros users can install it with: **`sudo apt install fonts-hosny-amiri`**. Other systems users can download it from its [webpage](https://github.com/aliftype/amiri) or the direct [v1.000 link](https://github.com/aliftype/amiri/releases/download/1.000/Amiri-1.000.zip)
+
+CiteQuran reuses qsearch (Quran Search) java module from the QuranKeyBoard Android [project](https://github.com/cdjalel/QuranKeyboard/tree/master) and [app](https://play.google.com/store/apps/details?id=com.djalel.android.qurankeyboard). 
+
+*****
+
+# QuranLOAddon
+QuranLOAddon is a LibreOffice extension to add Qur'an text to a document. It allows you to select a complete 
 surah or a range of ayats of a surah.
 
 The standard font is selected from the LibreOffice Basic Fonts (CTL) setting. 
