@@ -9,7 +9,6 @@ import com.sun.star.awt.XControlContainer;
 import com.sun.star.awt.XControlModel;
 import com.sun.star.awt.XDialog;
 import com.sun.star.awt.XItemListener;
-import com.sun.star.awt.XProgressBar;
 import com.sun.star.awt.XTextListener;
 import com.sun.star.awt.XToolkit;
 import com.sun.star.awt.XTopWindow;
@@ -596,6 +595,12 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
   protected void insertListBox(
       final String dlgName, final int x, final int y, final int width, final int height,
       final boolean enable) {
+    insertListBox(dlgName, x, y, width, height, enable, true);
+  }
+
+  protected void insertListBox(
+      final String dlgName, final int x, final int y, final int width, final int height,
+      final boolean enable, final boolean dropdown) {
 
     LOGGER.log(Level.FINER, "AddonDialog.insertListBox()");
     try {
@@ -611,7 +616,7 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
           PROP_POSITION_Y,
           PROP_WIDTH
       }, new Object[]{
-          true,
+          dropdown,
           enable,
           height,
           dlgName,
@@ -649,7 +654,9 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
 
       // The controlmodel is not really available until inserted to the Dialog container
       nameContainer.insertByName(dlgName, progressBarModel);
+
       progressBar = UnoRuntime.queryInterface(XPropertySet.class, progressBarModel);
+      progressBar.setPropertyValue(PROP_HEIGHT, Integer.valueOf(height));
 
       AddonDialogTools.showProperties(controlContainer, dlgName);
     } catch (final Exception ex) {
@@ -657,6 +664,38 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
     }
     return progressBar;
   }
+
+  public void insertHorizontalFixedLine(final String dlgName,final int x, final int y, final int width, final int height) {
+    try {
+      final Object lineModel = multiServiceFactory.createInstance("com.sun.star.awt.UnoControlFixedLineModel");
+      final XMultiPropertySet mps = AddonDialogTools.getMultiPropertSet(lineModel);
+
+      mps.setPropertyValues(
+          new String[] {
+              "Height",
+              "Name",
+              "Orientation",
+              "PositionX",
+              "PositionY",
+              "Width"
+          },
+          new Object[] {
+              Integer.valueOf(height),
+              dlgName,
+              Integer.valueOf(0),
+              Integer.valueOf(x),
+              Integer.valueOf(y),
+              Integer.valueOf(width)
+          }
+      );
+
+      // The controlmodel is not really available until inserted to the Dialog container
+      nameContainer.insertByName(dlgName, lineModel);
+
+    } catch (final Exception ex) {
+      LOGGER.log(Level.SEVERE, ex.toString(), ex);
+    }
+}
 
   @Override
   public void textChanged(final TextEvent textEvent) {
