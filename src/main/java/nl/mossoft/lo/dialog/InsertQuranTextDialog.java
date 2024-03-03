@@ -151,8 +151,6 @@ public class InsertQuranTextDialog extends AddonDialog {
   private String defaultLatinFontName;
   private double defaultLatinFontSize;
 
-  private XPropertySet progressBar = null;
-
   private static final String LEFT_PARENTHESIS = new String(Character.toChars(64830));
   private static final String RIGHT_PARENTHESIS = new String(Character.toChars(64831));
 
@@ -226,7 +224,7 @@ public class InsertQuranTextDialog extends AddonDialog {
     //insertGroupBox(MISCELLANEOUS_GROUP_BOX, 150, 123, 142, 28, rb.getString(MISCELLANEOUS_GROUP_BOX), true);
     // Insert Group
     insertButton(INSERT_SURAH_BUTTON, 4, 94, 40, 15, rb.getString(INSERT_SURAH_BUTTON), true);
-    progressBar = insertProgressBar(INSERT_PROGRESS_BAR, 46, 94, 252, 18);
+    insertProgressBar(INSERT_PROGRESS_BAR, 46, 94, 252, 18);
 
     LOGGER.log(Level.FINER, "InsertQuranTextDialog.addDialogControls completed");
   }
@@ -625,35 +623,14 @@ public class InsertQuranTextDialog extends AddonDialog {
   }
 
   private void setProgressBarValue(int v) {
-    /*
     final XProgressBar progBar = getControl(controlContainer, XProgressBar.class, INSERT_PROGRESS_BAR);
-    progBar.setValue(0);
-    */
-
-    if (null != progressBar) {
-      try {
-        progressBar.setPropertyValue("ProgressValue", Integer.valueOf(v));
-      } catch (final Exception ex) {
-        LOGGER.log(Level.SEVERE, ex.toString(), ex);
-      }
-    }
+    progBar.setValue(v);
   }
 
   private void initializeInsertSurahProgressBar() {
-    /*
     final XProgressBar progBar = getControl(controlContainer, XProgressBar.class, INSERT_PROGRESS_BAR);
     progBar.setRange(0, 100);
     progBar.setValue(0);
-    */
-    if (null != progressBar) {
-      try {
-        progressBar.setPropertyValue("ProgressValueMin", Integer.valueOf(0));
-        progressBar.setPropertyValue("ProgressValueMax", Integer.valueOf(100));
-        progressBar.setPropertyValue("ProgressValue", Integer.valueOf(0));
-      } catch (final Exception ex) {
-        LOGGER.log(Level.SEVERE, ex.toString(), ex);
-      }
-    }
   }
 
   /**

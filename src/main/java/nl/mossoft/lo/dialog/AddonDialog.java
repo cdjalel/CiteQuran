@@ -631,9 +631,8 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
     }
   }
 
-  protected XPropertySet insertProgressBar(
+  protected void insertProgressBar(
       final String dlgName, final int x, final int y, final int width, final int height) {
-    XPropertySet progressBar = null;
     LOGGER.log(Level.FINER, "AddonDialog.insertProgressBar()");
     try {
       final Object progressBarModel = multiServiceFactory.createInstance("com.sun.star.awt.UnoControlProgressBarModel");
@@ -654,15 +653,10 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
 
       // The controlmodel is not really available until inserted to the Dialog container
       nameContainer.insertByName(dlgName, progressBarModel);
-
-      progressBar = UnoRuntime.queryInterface(XPropertySet.class, progressBarModel);
-      progressBar.setPropertyValue(PROP_HEIGHT, Integer.valueOf(height));
-
       AddonDialogTools.showProperties(controlContainer, dlgName);
     } catch (final Exception ex) {
       LOGGER.log(Level.SEVERE, "Unexpected Exception: " + ex.toString(), ex);
     }
-    return progressBar;
   }
 
   public void insertHorizontalFixedLine(final String dlgName,final int x, final int y, final int width, final int height) {
