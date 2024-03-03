@@ -1,9 +1,9 @@
-package nl.mossoft.lo.dialog;
+package dz.djalel.LO.dialog;
 
-import static nl.mossoft.lo.utils.AddonDialogTools.boolean2Short;
-import static nl.mossoft.lo.utils.AddonDialogTools.enableControl;
-import static nl.mossoft.lo.utils.AddonDialogTools.getControl;
-import static nl.mossoft.lo.utils.AddonDialogTools.short2Boolean;
+import static dz.djalel.LO.utils.AddonDialogTools.boolean2Short;
+import static dz.djalel.LO.utils.AddonDialogTools.enableControl;
+import static dz.djalel.LO.utils.AddonDialogTools.getControl;
+import static dz.djalel.LO.utils.AddonDialogTools.short2Boolean;
 
 import com.sun.star.awt.XButton;
 import com.sun.star.awt.XCheckBox;
@@ -37,9 +37,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import nl.mossoft.lo.utils.AddonDialogTools;
-import nl.mossoft.lo.utils.DocumentHandler;
-import nl.mossoft.lo.utils.QuranReader;
+import dz.djalel.LO.utils.AddonDialogTools;
+import dz.djalel.LO.utils.DocumentHandler;
+import dz.djalel.LO.utils.QuranReader;
 
 /**
  * The InsertQuranTextDialog.

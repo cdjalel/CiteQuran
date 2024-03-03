@@ -11,7 +11,7 @@
           oor:name="1_SHIFT_MOD1"
           oor:op="replace">
           <prop oor:name="Command">
-            <value xml:lang="en-US">service:nl.mossoft.lo.QuranLOAddon?ShowIQTDialog</value>
+            <value xml:lang="en-US">service:dz.djalel.LO.CiteQuranOXT?ShowIQTDialog</value>
           </prop>
         </node>
       </node>

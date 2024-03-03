@@ -1,4 +1,4 @@
-package nl.mossoft.lo.dialog;
+package dz.djalel.LO.dialog;
 
 import com.sun.star.uno.XComponentContext;
 import java.util.Locale;

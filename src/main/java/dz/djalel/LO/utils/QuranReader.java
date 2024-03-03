@@ -19,7 +19,7 @@
  * not, see <https://www.gnu.org/licenses/>.
  */
 
-package nl.mossoft.lo.utils;
+package dz.djalel.LO.utils;
 
 import com.sun.star.deployment.PackageInformationProvider;
 import com.sun.star.deployment.XPackageInformationProvider;
@@ -113,7 +113,7 @@ public class QuranReader {
         PackageInformationProvider.get(
         xcontext);
     final String location = xpackageInformationProvider.getPackageLocation(
-        "nl.mossoft.lo.QuranLOAddon");
+        "dz.djalel.LO.CiteQuranOXT");
     final Object otransformer;
     try {
       otransformer = xcontext.getServiceManager()

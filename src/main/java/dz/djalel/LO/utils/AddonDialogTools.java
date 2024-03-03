@@ -1,4 +1,4 @@
-package nl.mossoft.lo.utils;
+package dz.djalel.LO.utils;
 
 import com.sun.star.awt.XControl;
 import com.sun.star.awt.XControlContainer;
@@ -13,7 +13,7 @@ import com.sun.star.uno.Exception;
 import com.sun.star.uno.UnoRuntime;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import nl.mossoft.lo.dialog.AddonDialog;
+import dz.djalel.LO.dialog.AddonDialog;
 
 /**
  * AddonDialogTools provides functionality for AddOnDialogs.

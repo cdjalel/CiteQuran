@@ -4,7 +4,7 @@
   xmlns="http://openoffice.org/extensions/description/2006">
 
   <display-name>
-    <name lang="en">QuranLOAddon</name>
+    <name lang="en">CiteQuranOXT</name>
   </display-name>
   <extension-description>
     <src lang="en-US" xlink:href="description/package-description-en-US.txt"/>
@@ -14,7 +14,7 @@
     <default xlink:href="images/q64.png"/>
   </icon>
 
-  <identifier value="nl.mossoft.lo.QuranLOAddon"/>
+  <identifier value="dz.djalel.LO.CiteQuranOXT"/>
 
   <platform value="all"/>
 

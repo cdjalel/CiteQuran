@@ -1,4 +1,4 @@
-package nl.mossoft.lo.utils;
+package dz.djalel.LO.utils;
 
 public enum DialogType {
   ABOUTDIALOG("AboutDialog"), ERRORDIALOG("ErrorDialog"), INSERTQURANTEXTDIALOG(
@@ -12,6 +12,6 @@ public enum DialogType {
 
   @Override
   public String toString() {
-    return "nl.mossoft.lo.dialog." + desc;
+    return "dz.djalel.LO.dialog." + desc;
   }
 }

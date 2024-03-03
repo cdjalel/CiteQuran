@@ -1,4 +1,4 @@
-package nl.mossoft.lo.utils;
+package dz.djalel.LO.utils;
 
 import com.sun.star.deployment.PackageInformationProvider;
 import com.sun.star.deployment.XPackageInformationProvider;
@@ -23,7 +23,7 @@ public class FileTools {
     final XPackageInformationProvider packageInformationProvider =
         PackageInformationProvider.get(context);
     final String location =
-        packageInformationProvider.getPackageLocation("nl.mossoft.lo.QuranLOAddon");
+        packageInformationProvider.getPackageLocation("dz.djalel.LO.CiteQuranOXT");
 
     try {
       final Object oUrlTransformer = context.getServiceManager()
@@ -48,7 +48,7 @@ public class FileTools {
     final XPackageInformationProvider packageInformationProvider =
         PackageInformationProvider.get(context);
     final String location =
-        packageInformationProvider.getPackageLocation("nl.mossoft.lo.QuranLOAddon");
+        packageInformationProvider.getPackageLocation("dz.djalel.LO.CiteQuranOXT");
 
     try {
       final Object oUrlTransformer = context.getServiceManager()

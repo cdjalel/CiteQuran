@@ -1,8 +1,8 @@
-#ifndef __nl_mossoft_lo_QuranLOAddon_QuranLOAddon_idl__
-#define __nl_mossoft_lo_QuranLOAddon_QuranLOAddon_idl__
+#ifndef __dz_djalel_LO_CiteQuranOXT_CiteQuranOXT_idl__
+#define __dz_djalel_LO_CiteQuranOXT_CiteQuranOXT_idl__
 
 #include <com/sun/star/task/XJobExecutor.idl>
-module nl { module mossoft { module lo { module QuranLOAddon {
+module dz { module djalel { module LO { module CiteQuranOXT {
 
 	service ShowIQTDialog : com::sun::star::task::XJobExecutor {
 

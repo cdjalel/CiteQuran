@@ -1,2 +1,2 @@
-rootProject.name = "QuranLOAddon"
+rootProject.name = "CiteQuranOXT"
 

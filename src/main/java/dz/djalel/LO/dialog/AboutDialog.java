@@ -1,4 +1,4 @@
-package nl.mossoft.lo.dialog;
+package dz.djalel.LO.dialog;
 
 import com.sun.star.awt.FontWeight;
 import com.sun.star.awt.XButton;
@@ -16,8 +16,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import nl.mossoft.lo.utils.AddonDialogTools;
-import nl.mossoft.lo.utils.FileTools;
+import dz.djalel.LO.utils.AddonDialogTools;
+import dz.djalel.LO.utils.FileTools;
 
 /**
  * The AboutDialog.
@@ -36,7 +36,7 @@ public class AboutDialog extends AddonDialog {
 
   private static final Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
-  private static final String JAR_FILE = "QuranLOAddon.jar";
+  private static final String JAR_FILE = "CiteQuranOXT.jar";
   private static final String LOGO_FILE = "images/q64.png";
 
   /**

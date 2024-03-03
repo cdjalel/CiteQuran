@@ -3,7 +3,7 @@ plugins {
     id("com.palantir.git-version") version "3.0.0"
   }
 
-group = "nl.mossoft.lo"
+group = "dz.djalel.LO"
 
 val gitVersion: groovy.lang.Closure<String> by extra
 version = gitVersion()
@@ -21,8 +21,8 @@ dependencies {
 
 tasks.withType<Jar> {
     manifest {
-        attributes["RegistrationClassName"] = "nl.mossoft.lo.comp.RegistrationHandler"
-        attributes["Implementation-Title"] = "QuranLOAddon"
+        attributes["RegistrationClassName"] = "dz.djalel.LO.comp.RegistrationHandler"
+        attributes["Implementation-Title"] = "CiteQuranOXT"
         attributes["Implementation-Version"] = project.version
     }
     from(sourceSets["main"].allSource) {
@@ -94,7 +94,7 @@ tasks.register<Exec>("compileIDLfile") {
         "/usr/lib/libreoffice/sdk/bin/unoidl-write",
         "/usr/lib64/libreoffice/program/types.rdb",
         "/usr/lib64/libreoffice/program/types/offapi.rdb",
-        "idl/nl/mossoft/lo/QuranLOAddon/QuranLOAddon.idl",
+        "idl/dz.djalel.LO/CiteQuranOXT/CiteQuranOXT.idl",
         "toArchive/types.rdb"
     )
 }

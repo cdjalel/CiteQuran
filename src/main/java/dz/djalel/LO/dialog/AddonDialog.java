@@ -1,4 +1,4 @@
-package nl.mossoft.lo.dialog;
+package dz.djalel.LO.dialog;
 
 import com.sun.star.awt.ActionEvent;
 import com.sun.star.awt.ItemEvent;
@@ -36,8 +36,8 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import nl.mossoft.lo.utils.AddonDialogTools;
-import nl.mossoft.lo.utils.DialogType;
+import dz.djalel.LO.utils.AddonDialogTools;
+import dz.djalel.LO.utils.DialogType;
 
 /**
  * The AddonDialog.
@@ -81,7 +81,7 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
 
   private static final Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
-  private static final String RESOURCE_BUNDLE = "nl.mossoft.lo.messages.DialogLabels";
+  private static final String RESOURCE_BUNDLE = "dz.djalel.LO.messages.DialogLabels";
   private static final Map<String, Method> actionsMap = new LinkedHashMap<>();
   protected final ResourceBundle rb;
   protected XComponent component = null;

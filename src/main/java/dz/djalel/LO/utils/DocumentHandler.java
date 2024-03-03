@@ -19,7 +19,7 @@
  * not, see <https://www.gnu.org/licenses/>.
  */
 
-package nl.mossoft.lo.utils;
+package dz.djalel.LO.utils;
 
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.frame.XController;

@@ -7,26 +7,26 @@
   <node oor:name="AddonUI">
     <node oor:name="Images">
       <node
-        oor:name="nl.mossoft.lo.QuranLOAddon.images"
+        oor:name="dz.djalel.LO.CiteQuranOXT.images"
         oor:op="replace">
         <node oor:name="UserDefinedImages">
           <prop oor:name="ImageSmallURL">
-            <value>vnd.sun.star.extension://nl.mossoft.lo.QuranLOAddon/images/q16.png</value>
+            <value>vnd.sun.star.extension://dz.djalel.LO.CiteQuranOXT/images/q16.png</value>
           </prop>
           <prop oor:name="ImageBigURL">
-            <value>vnd.sun.star.extension://nl.mossoft.lo.QuranLOAddon/images/q26.png</value>
+            <value>vnd.sun.star.extension://dz.djalel.LO.CiteQuranOXT/images/q26.png</value>
           </prop>
         </node>
         <prop
           oor:name="URL"
           oor:type="xs:string">
-          <value>service:nl.mossoft.lo.QuranLOAddon?ShowIQTDialog</value>
+          <value>service:dz.djalel.LO.CiteQuranOXT?ShowIQTDialog</value>
         </prop>
       </node>
     </node>
     <node oor:name="OfficeToolBar">
       <node
-        oor:name="nl.mossoft.lo.QuranLOAddon.toolbar"
+        oor:name="dz.djalel.LO.CiteQuranOXT.toolbar"
         oor:op="replace">
         <node
           oor:name="t01"
@@ -34,7 +34,7 @@
           <prop
             oor:name="URL"
             oor:type="xs:string">
-            <value>service:nl.mossoft.lo.QuranLOAddon?ShowIQTDialog</value>
+            <value>service:dz.djalel.LO.CiteQuranOXT?ShowIQTDialog</value>
           </prop>
           <prop
             oor:name="Target"
@@ -60,14 +60,14 @@
       </node>
     </node>
     <node oor:name="OfficeMenuBar">
-      <node oor:name="nl.mossoft.lo.QuranLOAddon.menubar" oor:op="replace">
+      <node oor:name="dz.djalel.LO.CiteQuranOXT.menubar" oor:op="replace">
         <node oor:name="Submenu">
           <node oor:name="M1" oor:op="replace">
             <prop oor:name="Title">
               <value xml:lang="en-US">Insert Quran Text</value>
             </prop>
             <prop oor:name="URL">
-              <value>service:nl.mossoft.lo.QuranLOAddon?ShowIQTDialog</value>
+              <value>service:dz.djalel.LO.CiteQuranOXT?ShowIQTDialog</value>
             </prop>
             <prop oor:name="Target" oor:type="xs:string">
               <value>_self</value>
@@ -78,7 +78,7 @@
               <value xml:lang="en-US">About</value>
             </prop>
             <prop oor:name="URL">
-              <value>service:nl.mossoft.lo.QuranLOAddon?ShowAboutDialog</value>
+              <value>service:dz.djalel.LO.CiteQuranOXT?ShowAboutDialog</value>
             </prop>
             <prop oor:name="Target" oor:type="xs:string">
               <value>_self</value>

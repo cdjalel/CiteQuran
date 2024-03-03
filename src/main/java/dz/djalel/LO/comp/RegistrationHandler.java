@@ -15,7 +15,7 @@
  * not, see <https://www.gnu.org/licenses/>.
  */
 
-package nl.mossoft.lo.comp;
+package dz.djalel.LO.comp;
 
 import com.sun.star.lang.XSingleComponentFactory;
 import com.sun.star.registry.XRegistryKey;

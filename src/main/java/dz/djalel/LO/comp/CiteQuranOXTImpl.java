@@ -1,4 +1,4 @@
-package nl.mossoft.lo.comp;
+package dz.djalel.LO.comp;
 
 import com.sun.star.lang.XSingleComponentFactory;
 import com.sun.star.lib.uno.helper.Factory;
@@ -8,17 +8,17 @@ import com.sun.star.uno.XComponentContext;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import nl.mossoft.lo.dialog.AddonDialog;
-import nl.mossoft.lo.dialog.InsertQuranTextDialog;
-import nl.mossoft.lo.utils.AddonLogger;
-import nl.mossoft.lo.utils.DialogType;
+import dz.djalel.LO.dialog.AddonDialog;
+import dz.djalel.LO.dialog.InsertQuranTextDialog;
+import dz.djalel.LO.utils.AddonLogger;
+import dz.djalel.LO.utils.DialogType;
 
-public class QuranLOAddonImpl extends WeakBase
+public class CiteQuranOXTImpl extends WeakBase
     implements com.sun.star.lang.XServiceInfo, com.sun.star.task.XJobExecutor {
 
-  private static final String ADDON_NAME = "nl.mossoft.lo.QuranLOAddon";
-  private static final String IMPLEMENTATION_NAME = QuranLOAddonImpl.class.getName();
-  private static final String[] SERVICE_NAMES = {QuranLOAddonImpl.ADDON_NAME};
+  private static final String ADDON_NAME = "dz.djalel.LO.CiteQuranOXT";
+  private static final String IMPLEMENTATION_NAME = CiteQuranOXTImpl.class.getName();
+  private static final String[] SERVICE_NAMES = {CiteQuranOXTImpl.ADDON_NAME};
 
   private static final String COMMAND_SHOW_IQT_DIALOG = "ShowIQTDialog";
   private static final String COMMAND_SHOW_ABOUT_DIALOG = "ShowAboutDialog";
@@ -28,7 +28,7 @@ public class QuranLOAddonImpl extends WeakBase
   private final XComponentContext componentContext;
   private final Locale locale;
 
-  public QuranLOAddonImpl(final XComponentContext componentContext) {
+  public CiteQuranOXTImpl(final XComponentContext componentContext) {
     this.componentContext = componentContext;
     locale = new Locale.Builder().setLanguage("en").setRegion("US").build();
 
@@ -46,9 +46,9 @@ public class QuranLOAddonImpl extends WeakBase
       final String implementationName) {
     XSingleComponentFactory singleComponentFactory = null;
 
-    if (implementationName.equals(QuranLOAddonImpl.IMPLEMENTATION_NAME)) {
-      singleComponentFactory = Factory.createComponentFactory(QuranLOAddonImpl.class,
-          QuranLOAddonImpl.SERVICE_NAMES);
+    if (implementationName.equals(CiteQuranOXTImpl.IMPLEMENTATION_NAME)) {
+      singleComponentFactory = Factory.createComponentFactory(CiteQuranOXTImpl.class,
+          CiteQuranOXTImpl.SERVICE_NAMES);
     }
     return singleComponentFactory;
   }
@@ -60,13 +60,13 @@ public class QuranLOAddonImpl extends WeakBase
    * @return true if successful
    */
   public static boolean __writeRegistryServiceInfo(final XRegistryKey registryKey) {
-    return Factory.writeRegistryServiceInfo(QuranLOAddonImpl.IMPLEMENTATION_NAME,
-        QuranLOAddonImpl.SERVICE_NAMES, registryKey);
+    return Factory.writeRegistryServiceInfo(CiteQuranOXTImpl.IMPLEMENTATION_NAME,
+        CiteQuranOXTImpl.SERVICE_NAMES, registryKey);
   }
 
   @Override
   public String getImplementationName() {
-    return QuranLOAddonImpl.IMPLEMENTATION_NAME;
+    return CiteQuranOXTImpl.IMPLEMENTATION_NAME;
   }
 
   /**
@@ -74,7 +74,7 @@ public class QuranLOAddonImpl extends WeakBase
    */
   @Override
   public boolean supportsService(final String service) {
-    for (final String serviceName : QuranLOAddonImpl.SERVICE_NAMES) {
+    for (final String serviceName : CiteQuranOXTImpl.SERVICE_NAMES) {
       if (service.equals(serviceName)) {
         return true;
       }
@@ -87,19 +87,19 @@ public class QuranLOAddonImpl extends WeakBase
    */
   @Override
   public String[] getSupportedServiceNames() {
-    return QuranLOAddonImpl.SERVICE_NAMES;
+    return CiteQuranOXTImpl.SERVICE_NAMES;
   }
 
   @Override
   public void trigger(final String command) {
     switch (command) {
       case COMMAND_SHOW_IQT_DIALOG -> {
-        LOGGER.log(Level.FINER, "QuranLOAddonImpl.trigger.COMMAND_SHOW_IQT_DIALOG");
+        LOGGER.log(Level.FINER, "CiteQuranOXTImpl.trigger.COMMAND_SHOW_IQT_DIALOG");
         AddonDialog.loadAddonDialog(DialogType.INSERTQURANTEXTDIALOG, componentContext, locale)
             .show();
       }
       case COMMAND_SHOW_ABOUT_DIALOG -> {
-        LOGGER.log(Level.FINER, "QuranLOAddonImpl.trigger.COMMAND_SHOW_ABOUT_DIALOG");
+        LOGGER.log(Level.FINER, "CiteQuranOXTImpl.trigger.COMMAND_SHOW_ABOUT_DIALOG");
         AddonDialog.loadAddonDialog(DialogType.ABOUTDIALOG, componentContext, locale).show();
       }
       default -> LOGGER.log(Level.SEVERE, "Unknown command {0}", new Object[]{command});
