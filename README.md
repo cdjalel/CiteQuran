@@ -8,8 +8,10 @@ It adds a new feature that allows users to:
 - Select and insert a matching Aya in the current LibreOffice Writer document.
 - By default, the inserted Quran text uses the **Amiri Quran Colored** font when available. 
 
-We strongly recommend to download and install the **Amiri Quran"** font.
-Debian/Ubuntu like Linux distros users can install it with: **`sudo apt install fonts-hosny-amiri`**. Other systems users can download it from its [webpage](https://github.com/aliftype/amiri) or the direct [v1.000 link](https://github.com/aliftype/amiri/releases/download/1.000/Amiri-1.000.zip)
+We recommend to use one of the next two fonts in addition to the other ones suggested below in QuranLOAddon:
+
+1. The **Amiri Quran** font, which is part of the **Amiri** arabic font family. Debian/Ubuntu like Linux distros users can install them with: **`sudo apt install fonts-hosny-amiri`**. Other systems users can download them from their [project webpage](https://github.com/aliftype/amiri) or the direct [link of version v1.000](https://github.com/aliftype/amiri/releases/download/1.000/Amiri-1.000.zip)
+1. The **KFGQPC HAFS Uthmanic Script** font, which can be downloaded from its [webpage](https://fonts.qurancomplex.gov.sa/wp02/en/%D8%AD%D9%81%D8%B5/) in the Quran Printing Complex site or the direct [link of version v2.2](https://fonts.qurancomplex.gov.sa/wp02/wp-content/uploads/2024/01/UthmanicHafs_v22.zip). Unpack the downloaded zip and select the file **`UthmanicHafs_V22.ttf`**. Linux users can simply copy this file to `~/.fonts/truetype`
 
 CiteQuran reuses qsearch (Quran Search) java module from the QuranKeyBoard Android [project](https://github.com/cdjalel/QuranKeyboard/tree/master) and [app](https://play.google.com/store/apps/details?id=com.djalel.android.qurankeyboard). 
 
