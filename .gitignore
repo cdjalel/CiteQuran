@@ -14,4 +14,4 @@ Logging.*
 # https://raw.githubusercontent.com/github/gitignore/main/Global/Kate.gitignore
 # Swap Files #
 .*.kate-swp
-.swp.*
+*.swp
