@@ -23,12 +23,14 @@ import static dz.djalel.LO.utils.AddonDialogTools.enableControl;
 import static dz.djalel.LO.utils.AddonDialogTools.getControl;
 import static dz.djalel.LO.utils.AddonDialogTools.short2Boolean;
 
+import com.sun.star.awt.Selection;
 import com.sun.star.awt.XButton;
 import com.sun.star.awt.XCheckBox;
 import com.sun.star.awt.XListBox;
 import com.sun.star.awt.XNumericField;
 import com.sun.star.awt.XProgressBar;
 import com.sun.star.awt.XTextComponent;
+
 import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
@@ -69,13 +71,17 @@ public class InsertQuranTextDialog extends AddonDialog {
 
   private static final String INSERT_QURAN_TEXT_DLG = "InsertQuranTextDlg";
 
+  private static final String SEARCH_GROUP_BOX = "SearchGroupBox";
+  private static final String AYA_SEARCH_BOX = "AyaSearchBox";
+  private static final String AYA_SEARCH_HINT = "⌕"; // "أدخل كلمات البحث في نص القرآن الكريم";
+  private static final String MATCHING_AYAT_LIST_BOX = "AyatListBox";
+
   private static final String INSERT_AYA_BUTTON = "InsertAyaButton";
   private static final String HORIZONTAL_SEPARATOR = "HorizontalSeparator";
 
   private static final String SURAH_GROUP_BOX = "SurahGroupBox";
   private static final String SURAH_LABEL = "SurahLabel";
   private static final String SURAH_LIST_BOX = "SurahListBox";
-  private static final String AYAT_GROUP_BOX = "AyatGroupBox";
   private static final String AYAT_LABEL = "AyatLabel";
   private static final String AYAT_ALL_CHECK_BOX = "AyatAllCheckBox";
   private static final String AYAT_FROM_LABEL = "AyatFromLabel";
@@ -83,7 +89,6 @@ public class InsertQuranTextDialog extends AddonDialog {
   private static final String AYAT_TO_LABEL = "AyatToLabel";
   private static final String AYAT_TO_NUMERIC_FIELD = "AyatToNumericField";
   private static final String LANGUAGE_GROUP_BOX = "LanguageGroupBox";
-  private static final String ARABIC_FONT_GROUP_BOX = "ArabicFontGroupBox";
   private static final String ARABIC_FONT_LABEL = "ArabicFontLabel";
   private static final String ARABIC_FONT_LIST_BOX = "ArabicFontListBox";
   private static final String ARABIC_FONT_SIZE_NUMERIC_FIELD = "ArabicFontSizeNumericField";
@@ -91,7 +96,6 @@ public class InsertQuranTextDialog extends AddonDialog {
   private static final String ARABIC_LANGUAGE_CHECK_BOX = "ArabicLanguageCheckBox";
   private static final String ARABIC_LANGUAGE_VERSION_LIST_BOX =
       "ArabicLanguageVersionListBox";
-  private static final String LATIN_FONT_GROUP_BOX = "LatinFontGroupBox";
   private static final String LATIN_FONT_LABEL = "LatinFontLabel";
   private static final String LATIN_FONT_LIST_BOX = "LatinFontListBox";
   private static final String LATIN_FONT_SIZE_NUMERIC_FIELD = "LatinFontSizeNumericField";
@@ -107,13 +111,16 @@ public class InsertQuranTextDialog extends AddonDialog {
       "TransliterationLanguageVersionCheckBox";
   private static final String TRANSLITERATION_LANGUAGE_VERSION_LIST_BOX =
       "TransliterationLanguageVersionListBox";
-  private static final String MISCELLANEOUS_GROUP_BOX = "MiscGroupBox";
   private static final String LINE_BY_LINE_LABEL = "LineByLineLabel";
   private static final String LINE_BY_LINE_CHECK_BOX = "LineByLineCheckBox";
   private static final String INSERT_SURAH_BUTTON = "InsertSurahButton";
   private static final String INSERT_PROGRESS_BAR = "InsertProgressBar";
 
   // Dialog Events
+  private static final String ON_SEARCH_BOX_TEXT = "onSearchBoxText";
+  private static final String ON_MATCHING_AYA_SELECTED = "onMatchingAyaSelected";
+  private static final String ON_INSERT_AYA_BUTTON_PRESSED = "onInsertAyaButtonPressed";
+
   private static final String ON_ARABIC_FONT_SELECTED = "onArabicFontSelected";
   private static final String ON_ARABIC_LANGUAGE_CHECK_BOX_SELECTED =
       "onArabicLanguageCheckBoxSelected";
@@ -181,68 +188,62 @@ public class InsertQuranTextDialog extends AddonDialog {
   protected InsertQuranTextDialog(
       final XComponentContext componentContext, final Locale locale) {
     super(componentContext, locale);
+    LOGGER.setLevel(Level.WARNING);
   }
 
   @Override
   protected void addDialogControls() {
     LOGGER.log(Level.FINER, "InsertQuranTextDialog.addDialogControls()");
 
-    insertHorizontalFixedLine(HORIZONTAL_SEPARATOR, 2, 2, 296, 2);
+    insertGroupBox(SEARCH_GROUP_BOX, 2, 1, 296, 64, rb.getString(SEARCH_GROUP_BOX), true);
+    insertEditField(AYA_SEARCH_BOX, AYA_SEARCH_HINT, 46, 10, 248, 14, ALIGNMENT_CENTER, false, true);
+    insertButton(INSERT_AYA_BUTTON, 4, 10, 40, 14, rb.getString(INSERT_AYA_BUTTON), true);
+    insertListBox(MATCHING_AYAT_LIST_BOX, 4, 26, 290, 36, true, false);
+
+    insertHorizontalFixedLine(HORIZONTAL_SEPARATOR, 2, 72, 296, 1);
 
     // Surah GroupBox
-    insertGroupBox(SURAH_GROUP_BOX, 2, 4, 296, 27, rb.getString(SURAH_GROUP_BOX), true);
-    insertLabel(SURAH_LABEL, 6, 15, 20, 10, rb.getString(SURAH_LABEL), ALIGNMENT_LEFT, false, true);
-    insertListBox(SURAH_LIST_BOX, 26, 15, 65, 10, true);
+    insertGroupBox(SURAH_GROUP_BOX, 2, 76, 296, 102, rb.getString(SURAH_GROUP_BOX), true);
+    insertLabel(SURAH_LABEL, 6, 87, 20, 10, rb.getString(SURAH_LABEL), ALIGNMENT_LEFT, false, true);
+    insertListBox(SURAH_LIST_BOX, 26, 87, 65, 10, true);
 
-    // Ayat GroupBox
-    //insertGroupBox(AYAT_GROUP_BOX, 4, 32, 142, 59, rb.getString(AYAT_GROUP_BOX), true);
-    insertLabel(AYAT_LABEL, 110, 15, 24, 10, rb.getString(AYAT_LABEL), ALIGNMENT_LEFT, false, true);
-    insertCheckBox(AYAT_ALL_CHECK_BOX, 138, 15, 10, 10, true);
-    insertLabel(AYAT_FROM_LABEL, 151, 15, 16, 10, rb.getString(AYAT_FROM_LABEL), ALIGNMENT_LEFT,
-        false, false);
-    insertNumericField(AYAT_FROM_NUMERIC_FIELD, 169, 15, 25, 10, false);
-    insertLabel(AYAT_TO_LABEL, 195, 15, 10, 10, rb.getString(AYAT_TO_LABEL), ALIGNMENT_LEFT,
-        false, false);
-    insertNumericField(AYAT_TO_NUMERIC_FIELD, 205, 15, 25, 10, false);
-    insertLabel(LINE_BY_LINE_LABEL, 230, 15, 50, 10, rb.getString(LINE_BY_LINE_LABEL),
-        ALIGNMENT_RIGHT, false, true);
-    insertCheckBox(LINE_BY_LINE_CHECK_BOX, 282, 15, 10, 10, true);
+    insertLabel(AYAT_LABEL, 110, 87, 24, 10, rb.getString(AYAT_LABEL), ALIGNMENT_LEFT, false, true);
+    insertCheckBox(AYAT_ALL_CHECK_BOX, 138, 87, 10, 10, true);
+    insertLabel(AYAT_FROM_LABEL, 151, 87, 16, 10, rb.getString(AYAT_FROM_LABEL), ALIGNMENT_LEFT, false, false);
+    insertNumericField(AYAT_FROM_NUMERIC_FIELD, 169, 87, 25, 10, false);
+    insertLabel(AYAT_TO_LABEL, 195, 87, 10, 10, rb.getString(AYAT_TO_LABEL), ALIGNMENT_LEFT, false, false);
+    insertNumericField(AYAT_TO_NUMERIC_FIELD, 205, 87, 25, 10, false);
+    insertLabel(LINE_BY_LINE_LABEL, 230, 87, 50, 10, rb.getString(LINE_BY_LINE_LABEL), ALIGNMENT_RIGHT, false, true);
+    insertCheckBox(LINE_BY_LINE_CHECK_BOX, 282, 87, 10, 10, true);
 
 
     // Language GroupBox
-    insertGroupBox(LANGUAGE_GROUP_BOX, 2, 32, 296, 58, rb.getString(LANGUAGE_GROUP_BOX), true);
-    insertLabel(ARABIC_LANGUAGE_LABEL, 4, 42, 46, 10, rb.getString(ARABIC_LANGUAGE_LABEL),
-        ALIGNMENT_RIGHT, false, true);
-    insertCheckBox(ARABIC_LANGUAGE_CHECK_BOX, 52, 42, 10, 10, true);
-    insertListBox(ARABIC_LANGUAGE_VERSION_LIST_BOX, 64, 42, 73, 10, true);
-    insertLabel(TRANSLATION_LANGUAGE_VERSION_LABEL, 4, 57, 46, 10,
-        rb.getString(TRANSLATION_LANGUAGE_VERSION_LABEL), ALIGNMENT_RIGHT, false, false);
-    insertCheckBox(TRANSLATION_LANGUAGE_VERSION_CHECK_BOX, 52, 57, 10, 10, true);
-    insertListBox(TRANSLATION_LANGUAGE_VERSION_LIST_BOX, 64, 57, 73, 10, false);
-    insertLabel(TRANSLITERATION_LANGUAGE_VERSION_LABEL, 4, 73, 46, 10,
-        rb.getString(TRANSLITERATION_LANGUAGE_VERSION_LABEL), ALIGNMENT_RIGHT, false, false);
-    insertCheckBox(TRANSLITERATION_LANGUAGE_VERSION_CHECK_BOX, 52, 73, 10, 10, false);
-    insertListBox(TRANSLITERATION_LANGUAGE_VERSION_LIST_BOX, 64, 73, 73, 10, false);
+    insertGroupBox(LANGUAGE_GROUP_BOX, 5, 100, 290, 57, rb.getString(LANGUAGE_GROUP_BOX), true);
+    insertLabel(ARABIC_LANGUAGE_LABEL, 4, 112, 46, 10, rb.getString(ARABIC_LANGUAGE_LABEL), ALIGNMENT_RIGHT, false, true);
+    insertCheckBox(ARABIC_LANGUAGE_CHECK_BOX, 52, 112, 10, 10, true);
+    insertListBox(ARABIC_LANGUAGE_VERSION_LIST_BOX, 64, 112, 73, 10, true);
+
+    insertLabel(TRANSLATION_LANGUAGE_VERSION_LABEL, 4, 127, 46, 10, rb.getString(TRANSLATION_LANGUAGE_VERSION_LABEL), ALIGNMENT_RIGHT, false, false);
+    insertCheckBox(TRANSLATION_LANGUAGE_VERSION_CHECK_BOX, 52, 127, 10, 10, true);
+    insertListBox(TRANSLATION_LANGUAGE_VERSION_LIST_BOX, 64, 127, 73, 10, false);
+
+    insertLabel(TRANSLITERATION_LANGUAGE_VERSION_LABEL, 4, 142, 46, 10, rb.getString(TRANSLITERATION_LANGUAGE_VERSION_LABEL), ALIGNMENT_RIGHT, false, false);
+    insertCheckBox(TRANSLITERATION_LANGUAGE_VERSION_CHECK_BOX, 52, 142, 10, 10, false);
+    insertListBox(TRANSLITERATION_LANGUAGE_VERSION_LIST_BOX, 64, 142, 73, 10, false);
 
     // Arabic Font GroupBox
-    //insertGroupBox(ARABIC_FONT_GROUP_BOX, 150, 5, 142, 59, rb.getString(ARABIC_FONT_GROUP_BOX), true);
-    insertLabel(ARABIC_FONT_LABEL, 150, 42, 34, 10, rb.getString(ARABIC_FONT_LABEL),
-        ALIGNMENT_RIGHT, false, true);
-    insertListBox(ARABIC_FONT_LIST_BOX, 188, 42, 82, 10, true);
-    insertNumericField(ARABIC_FONT_SIZE_NUMERIC_FIELD, 272, 42, 22, 10, true);
+    insertLabel(ARABIC_FONT_LABEL, 150, 112, 34, 10, rb.getString(ARABIC_FONT_LABEL), ALIGNMENT_RIGHT, false, true);
+    insertListBox(ARABIC_FONT_LIST_BOX, 188, 112, 82, 10, true);
+    insertNumericField(ARABIC_FONT_SIZE_NUMERIC_FIELD, 272, 112, 22, 10, true);
 
     // Latin Font GroupBox
-    // insertGroupBox(LATIN_FONT_GROUP_BOX, 150, 64, 142, 59, rb.getString(LATIN_FONT_GROUP_BOX), true);
-    insertLabel(LATIN_FONT_LABEL, 150, 57, 34, 10, rb.getString(LATIN_FONT_LABEL),
-        ALIGNMENT_RIGHT, false, true);
-    insertListBox(LATIN_FONT_LIST_BOX, 188, 57, 82, 10, true);
-    insertNumericField(LATIN_FONT_SIZE_NUMERIC_FIELD, 272, 57, 22, 10, true);
+    insertLabel(LATIN_FONT_LABEL, 150, 127, 34, 10, rb.getString(LATIN_FONT_LABEL), ALIGNMENT_RIGHT, false, true);
+    insertListBox(LATIN_FONT_LIST_BOX, 188, 127, 82, 10, true);
+    insertNumericField(LATIN_FONT_SIZE_NUMERIC_FIELD, 272, 127, 22, 10, true);
 
-    // Misc GroupBox
-    //insertGroupBox(MISCELLANEOUS_GROUP_BOX, 150, 123, 142, 28, rb.getString(MISCELLANEOUS_GROUP_BOX), true);
     // Insert Group
-    insertButton(INSERT_SURAH_BUTTON, 4, 94, 40, 15, rb.getString(INSERT_SURAH_BUTTON), true);
-    insertProgressBar(INSERT_PROGRESS_BAR, 46, 94, 252, 18);
+    insertButton(INSERT_SURAH_BUTTON, 4, 160, 40, 14, rb.getString(INSERT_SURAH_BUTTON), true);
+    insertProgressBar(INSERT_PROGRESS_BAR, 46, 160, 252, 18);
 
     LOGGER.log(Level.FINER, "InsertQuranTextDialog.addDialogControls completed");
   }
@@ -254,7 +255,7 @@ public class InsertQuranTextDialog extends AddonDialog {
       ps.setPropertyValue(PROP_POSITION_X, 200);
       ps.setPropertyValue(PROP_POSITION_Y, 100);
       ps.setPropertyValue(PROP_WIDTH, 300);
-      ps.setPropertyValue(PROP_HEIGHT, 170);
+      ps.setPropertyValue(PROP_HEIGHT, 180);
       ps.setPropertyValue(PROP_TITLE, rb.getString(INSERT_QURAN_TEXT_DLG));
     } catch (final Exception ex) {
       LOGGER.log(Level.SEVERE, ex.toString(), ex);
@@ -265,6 +266,11 @@ public class InsertQuranTextDialog extends AddonDialog {
   protected void initializeDialog() {
     LOGGER.log(Level.FINER, "InsertQuranTextDialog.initializeDialog()");
     getLoDocumentDefaults();
+
+    initializeSearchBox();
+    initializeMatchingAyatListBox();
+    initializeInsertAyaButton();
+
 
     initializeSurahListBox();
     initializeAyatAllChkBx();
@@ -282,7 +288,7 @@ public class InsertQuranTextDialog extends AddonDialog {
     initializeLatinFontSize();
     initializeLineByLineCheckBox();
 
-    initializeInsertButton();
+    initializeInsertSurahButton();
     initializeInsertSurahProgressBar();
 
     LOGGER.log(Level.FINER, "InsertQuranTextDialog.initializeDialog() Completed");
@@ -348,6 +354,42 @@ public class InsertQuranTextDialog extends AddonDialog {
       defaultLatinFontSize = 10;
     }
   }
+
+  private void initializeSearchBox() {
+    LOGGER.log(Level.FINER, "InsertQuranTextDialog.initializeSearchBox");
+    final XTextComponent textComponent =  (XTextComponent) getControl(controlContainer, XTextComponent.class, AYA_SEARCH_BOX);
+    // Select all text
+    textComponent.setSelection(new Selection((short) 0, (short) textComponent.getText().length()));
+
+    registerDialogEvent(AYA_SEARCH_BOX, controlContainer, XTextComponent.class, ON_SEARCH_BOX_TEXT, this);
+  }
+
+  private void initializeMatchingAyatListBox() {
+    LOGGER.log(Level.FINER, "InsertQuranTextDialog.initializeMatchingAyatListBox()");
+    final XListBox listBox = getControl(controlContainer, XListBox.class, MATCHING_AYAT_LIST_BOX);
+
+    // TODO: remove test code below
+    listBox.addItem("بسم الله الرحمان الرحيم", (short) 0);
+    listBox.addItem("الحمد لله رب العالمين", (short) 1);
+    listBox.addItem("الرحمان الرحيم", (short) 2);
+    listBox.addItem("مالك يوم الدين", (short) 3);
+    listBox.addItem("إيك نعبد وإياك نستعين", (short) 4);
+    listBox.addItem("اهدنا الصرلط المستقيم", (short) 5);
+    listBox.selectItemPos((short) 0, true);
+
+    // TODO align list items right. UNSUPPORTED IN UNO API FOR NOW. XXX
+
+    registerDialogEvent(MATCHING_AYAT_LIST_BOX, controlContainer, XListBox.class,
+          ON_MATCHING_AYA_SELECTED, this);
+  }
+
+
+  private void initializeInsertAyaButton() {
+    LOGGER.log(Level.FINER, "InsertQuranTextDialog.initializeInsertAyaButton");
+    registerDialogEvent(
+        INSERT_AYA_BUTTON, controlContainer, XButton.class, ON_INSERT_AYA_BUTTON_PRESSED, this);  // TODO add handler
+  }
+
 
   /**
    * Initializes the listbox with all the surah names of the Qur'an.
@@ -634,8 +676,8 @@ public class InsertQuranTextDialog extends AddonDialog {
         ON_LINE_BY_LINE_CHECK_BOX_SELECTED, this);
   }
 
-  private void initializeInsertButton() {
-    LOGGER.log(Level.FINER, "InsertQuranTextDialog.initializeInsertButton");
+  private void initializeInsertSurahButton() {
+    LOGGER.log(Level.FINER, "InsertQuranTextDialog.initializeInsertSurahButton");
     registerDialogEvent(
         INSERT_SURAH_BUTTON, controlContainer, XButton.class, ON_INSERT_SURAH_BUTTON_PRESSED, this);
   }
@@ -722,6 +764,47 @@ public class InsertQuranTextDialog extends AddonDialog {
    */
   private double getDefaultLatinFontSize() {
     return defaultLatinFontSize;
+  }
+
+  @SuppressWarnings("unused")
+  protected void handleSearchBoxText() {
+    LOGGER.log(Level.FINER, "InsertQuranTextDialog.handleSearchBoxText");
+
+    final XListBox listBox = getControl(controlContainer, XListBox.class, MATCHING_AYAT_LIST_BOX);
+    listBox.removeItems((short) 0, (short) (listBox.getItemCount() - 1));
+
+    final XTextComponent textComponent =  (XTextComponent) getControl(controlContainer, XTextComponent.class, AYA_SEARCH_BOX);
+    final String text = textComponent.getText();
+    LOGGER.log(Level.INFO, "InsertQuranTextDialog.handleSearchBoxText " + text);
+    if ( text.length() < 3) {
+        return;
+    }
+
+    // TODO:
+    // search and reset the matching list box with new results
+
+    //for (int i = 0; i < matches.length; i++) {
+    //    listBox.addItem(matches[i], (short) i);
+    //}
+
+  }
+
+  @SuppressWarnings("unused")
+  protected void handleMatchingAyaSelected() {
+    LOGGER.log(Level.FINER, "InsertQuranTextDialog.handleMatchingAyaSelected");
+
+    final XListBox listBox = getControl(controlContainer, XListBox.class, MATCHING_AYAT_LIST_BOX);
+    final int selectedMatch = listBox.getSelectedItemPos();
+    // TODO:
+    //  enable insert aya button
+    //  save match (surah nbr + aya nbr)
+  }
+
+  @SuppressWarnings("unused")
+  protected void handleInsertAyaButtonPressed() {
+    LOGGER.log(Level.FINER, "InsertQuranTextDialog.handleInsertAyaButtonPressed()");
+    //insertAya(selectedSurahNo); TODO
+    dialog.endExecute();
   }
 
   @SuppressWarnings("unused")
@@ -851,8 +934,6 @@ public class InsertQuranTextDialog extends AddonDialog {
     enableControl(
         controlContainer, TRANSLATION_LANGUAGE_VERSION_LABEL, selectedTranslationInd);
 
-    enableControl(controlContainer, LATIN_FONT_GROUP_BOX,
-        selectedTransliterationInd || selectedTranslationInd);
     enableControl(controlContainer, LATIN_FONT_LABEL, selectedTransliterationInd
         || selectedTranslationInd);
     enableControl(controlContainer, LATIN_FONT_LIST_BOX,
@@ -860,8 +941,6 @@ public class InsertQuranTextDialog extends AddonDialog {
     enableControl(controlContainer, LATIN_FONT_SIZE_NUMERIC_FIELD,
         selectedTransliterationInd || selectedTranslationInd);
 
-    enableControl(controlContainer, MISCELLANEOUS_GROUP_BOX,
-        selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
 
     enableControl(controlContainer, LINE_BY_LINE_LABEL,
         selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
@@ -887,17 +966,12 @@ public class InsertQuranTextDialog extends AddonDialog {
     enableControl(
         controlContainer, TRANSLITERATION_LANGUAGE_VERSION_LABEL, selectedTransliterationInd);
 
-    enableControl(controlContainer, LATIN_FONT_GROUP_BOX,
-        selectedTransliterationInd || selectedTranslationInd);
     enableControl(controlContainer, LATIN_FONT_LABEL, selectedTransliterationInd
         || selectedTranslationInd);
     enableControl(controlContainer, LATIN_FONT_LIST_BOX,
         selectedTransliterationInd || selectedTranslationInd);
     enableControl(controlContainer, LATIN_FONT_SIZE_NUMERIC_FIELD,
         selectedTransliterationInd || selectedTranslationInd);
-
-    enableControl(controlContainer, MISCELLANEOUS_GROUP_BOX,
-        selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
 
     enableControl(controlContainer, LINE_BY_LINE_LABEL,
         selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
@@ -918,13 +992,10 @@ public class InsertQuranTextDialog extends AddonDialog {
 
     enableControl(controlContainer, ARABIC_LANGUAGE_LABEL, selectedArabicInd);
     enableControl(controlContainer, ARABIC_LANGUAGE_VERSION_LIST_BOX, selectedArabicInd);
-    enableControl(controlContainer, ARABIC_FONT_GROUP_BOX, selectedArabicInd);
     enableControl(controlContainer, ARABIC_FONT_LABEL, selectedArabicInd);
     enableControl(controlContainer, ARABIC_FONT_LIST_BOX, selectedArabicInd);
     enableControl(controlContainer, ARABIC_FONT_SIZE_NUMERIC_FIELD, selectedArabicInd);
 
-    enableControl(controlContainer, MISCELLANEOUS_GROUP_BOX,
-        selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
     enableControl(controlContainer, LINE_BY_LINE_LABEL,
         selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
     enableControl(controlContainer, LINE_BY_LINE_CHECK_BOX,

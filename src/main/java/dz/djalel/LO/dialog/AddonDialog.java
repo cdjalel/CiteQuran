@@ -78,11 +78,13 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
   public static final String PROP_LABEL = "Label";
   public static final String PROP_MULTILINE = "MultiLine";
   public static final String PROP_NAME = "Name";
+  public static final String PROP_ORIENTATION = "Orientation";
   public static final String PROP_POSITION_X = "PositionX";
   public static final String PROP_POSITION_Y = "PositionY";
   public static final String PROP_PUSHBUTTON_TYPE = "PushButtonType";
   public static final String PROP_SPIN = "Spin";
   public static final String PROP_STATE = "State";
+  public static final String PROP_TEXT = "Text";
   public static final String PROP_TITLE = "Title";
   public static final String PROP_TRI_STATE = "TriState";
   public static final String PROP_VERTICAL_ALIGN = "VerticalAlign";
@@ -684,12 +686,12 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
 
       mps.setPropertyValues(
           new String[] {
-              "Height",
-              "Name",
-              "Orientation",
-              "PositionX",
-              "PositionY",
-              "Width"
+              PROP_HEIGHT,
+              PROP_NAME,
+              PROP_ORIENTATION,
+              PROP_POSITION_X,
+              PROP_POSITION_Y,
+              PROP_WIDTH
           },
           new Object[] {
               Integer.valueOf(height),
@@ -703,11 +705,70 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
 
       // The controlmodel is not really available until inserted to the Dialog container
       nameContainer.insertByName(dlgName, lineModel);
+      AddonDialogTools.showProperties(controlContainer, dlgName);
 
     } catch (final Exception ex) {
       LOGGER.log(Level.SEVERE, ex.toString(), ex);
     }
-}
+  }
+
+
+  // https://wiki.documentfoundation.org/Documentation/DevGuide/Graphical_User_Interfaces#Text_Field
+  public void insertEditField(
+      final String dlgName, final String hint, final int _nPosX, final int _nPosY, final int _nWidth,
+      final int _nHeight, final short alignment, final boolean multiline, final boolean enable) {
+    LOGGER.log(Level.FINER, "AddonDialog.insertEditField()");
+    //XTextComponent xTextComponent = null;
+    try {
+      // create a controlmodel at the multiservicefactory of the dialog model...
+      Object oTFModel = multiServiceFactory.createInstance("com.sun.star.awt.UnoControlEditModel");
+      XMultiPropertySet xTFModelMPSet = AddonDialogTools.getMultiPropertSet(oTFModel);
+
+      // Set the properties at the model - keep in mind to pass the property names in alphabetical order!
+      xTFModelMPSet.setPropertyValues(
+        new String[] {
+          PROP_ALIGN,
+          PROP_ENABLED,
+          PROP_HEIGHT,
+          PROP_MULTILINE,
+          PROP_NAME,
+          PROP_POSITION_X,
+          PROP_POSITION_Y,
+          PROP_TEXT,
+          PROP_VERTICAL_ALIGN,
+          PROP_WIDTH
+          },
+        new Object[] {
+          alignment,
+          enable,
+          Integer.valueOf(_nHeight),
+          multiline,
+          dlgName,
+          Integer.valueOf(_nPosX),
+          Integer.valueOf(_nPosY),
+          hint,
+          VerticalAlignment.MIDDLE,
+          Integer.valueOf(_nWidth)
+          });
+
+      // The controlmodel is not really available until inserted to the Dialog container
+      nameContainer.insertByName(dlgName, oTFModel);
+      AddonDialogTools.showProperties(controlContainer, dlgName);
+
+      // add a textlistener that is notified on each change of the controlvalue...
+      /*
+      XControl xTFControl = controlContainer.getControl(dlgName);
+      xTextComponent = (XTextComponent) UnoRuntime.queryInterface(XTextComponent.class, xTFControl);
+      XWindow xTFWindow = (XWindow) UnoRuntime.queryInterface(XWindow.class, xTFControl);
+      xTFWindow.addFocusListener(_xFocusListener);
+      xTextComponent.addTextListener(_xTextListener);
+      xTFWindow.addKeyListener(this);
+      */
+    } catch (final Exception ex) {
+      LOGGER.log(Level.SEVERE, ex.toString(), ex);
+    }
+    //return xTextComponent;
+  }
 
   @Override
   public void textChanged(final TextEvent textEvent) {
