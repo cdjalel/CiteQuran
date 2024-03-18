@@ -117,7 +117,7 @@ public class InsertQuranTextDialog extends AddonDialog {
   private static final String INSERT_PROGRESS_BAR = "InsertProgressBar";
 
   // Dialog Events
-  private static final String ON_SEARCH_BOX_TEXT = "onSearchBoxText";
+  private static final String ON_SEARCH_BOX_TEXT = "onSearchBoxTextChanged";
   private static final String ON_MATCHING_AYA_SELECTED = "onMatchingAyaSelected";
   private static final String ON_INSERT_AYA_BUTTON_PRESSED = "onInsertAyaButtonPressed";
 
@@ -188,7 +188,7 @@ public class InsertQuranTextDialog extends AddonDialog {
   protected InsertQuranTextDialog(
       final XComponentContext componentContext, final Locale locale) {
     super(componentContext, locale);
-    LOGGER.setLevel(Level.WARNING);
+    //LOGGER.setLevel(Level.WARNING);
   }
 
   @Override
@@ -767,15 +767,17 @@ public class InsertQuranTextDialog extends AddonDialog {
   }
 
   @SuppressWarnings("unused")
-  protected void handleSearchBoxText() {
-    LOGGER.log(Level.FINER, "InsertQuranTextDialog.handleSearchBoxText");
+  protected void handleSearchBoxTextChanged() {
+    LOGGER.log(Level.FINER, "InsertQuranTextDialog.handleSearchBoxTextChanged");
 
     final XListBox listBox = getControl(controlContainer, XListBox.class, MATCHING_AYAT_LIST_BOX);
-    listBox.removeItems((short) 0, (short) (listBox.getItemCount() - 1));
+    if (listBox.getItemCount() > 0) {
+      listBox.removeItems((short) 0, listBox.getItemCount());
+    }
 
     final XTextComponent textComponent =  (XTextComponent) getControl(controlContainer, XTextComponent.class, AYA_SEARCH_BOX);
     final String text = textComponent.getText();
-    LOGGER.log(Level.INFO, "InsertQuranTextDialog.handleSearchBoxText " + text);
+    LOGGER.log(Level.INFO, "InsertQuranTextDialog.handleSearchBoxTextChanged: new text = " + text);
     if ( text.length() < 3) {
         return;
     }
