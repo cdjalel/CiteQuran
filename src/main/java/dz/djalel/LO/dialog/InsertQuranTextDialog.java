@@ -18,6 +18,7 @@
 
 package dz.djalel.LO.dialog;
 
+
 import static dz.djalel.LO.utils.AddonDialogTools.boolean2Short;
 import static dz.djalel.LO.utils.AddonDialogTools.enableControl;
 import static dz.djalel.LO.utils.AddonDialogTools.getControl;
@@ -48,8 +49,10 @@ import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
+import java.io.IOException;
 import java.io.File;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -60,6 +63,9 @@ import java.util.logging.Logger;
 import dz.djalel.LO.utils.AddonDialogTools;
 import dz.djalel.LO.utils.DocumentHandler;
 import dz.djalel.LO.utils.QuranReader;
+
+import dz.djalel.quransearch.QuranSearch;
+import dz.djalel.quransearch.AyaMatch;
 
 /**
  * The InsertQuranTextDialog.
@@ -179,6 +185,8 @@ public class InsertQuranTextDialog extends AddonDialog {
   private static final String LEFT_PARENTHESIS = new String(Character.toChars(64830));
   private static final String RIGHT_PARENTHESIS = new String(Character.toChars(64831));
 
+  private QuranSearch mQuranSearch;
+
   /**
    * Instantiates a new Addon dialog.
    *
@@ -189,16 +197,28 @@ public class InsertQuranTextDialog extends AddonDialog {
       final XComponentContext componentContext, final Locale locale) {
     super(componentContext, locale);
     //LOGGER.setLevel(Level.WARNING);
+
+    try {
+       mQuranSearch = new QuranSearch(componentContext);
+       LOGGER.log(Level.INFO, "Quran Search objectcreated ");
+    } catch (IOException |SecurityException e) {
+        mQuranSearch = null;
+        // TODO show temp. error message  "Quran Search disabled, File not found!"
+        // TODO disable related controls or use legacy dialog only
+        LOGGER.log(Level.SEVERE, e.toString(), e);
+    }
   }
 
   @Override
   protected void addDialogControls() {
     LOGGER.log(Level.FINER, "InsertQuranTextDialog.addDialogControls()");
 
-    insertGroupBox(SEARCH_GROUP_BOX, 2, 1, 296, 64, rb.getString(SEARCH_GROUP_BOX), true);
-    insertEditField(AYA_SEARCH_BOX, AYA_SEARCH_HINT, 46, 10, 248, 14, ALIGNMENT_CENTER, false, true);
-    insertButton(INSERT_AYA_BUTTON, 4, 10, 40, 14, rb.getString(INSERT_AYA_BUTTON), true);
-    insertListBox(MATCHING_AYAT_LIST_BOX, 4, 26, 290, 36, true, false);
+    if (null != mQuranSearch) {
+      insertGroupBox(SEARCH_GROUP_BOX, 2, 1, 296, 64, rb.getString(SEARCH_GROUP_BOX), true);
+      insertEditField(AYA_SEARCH_BOX, AYA_SEARCH_HINT, 46, 10, 248, 14, ALIGNMENT_CENTER, false, true);
+      insertButton(INSERT_AYA_BUTTON, 4, 10, 40, 14, rb.getString(INSERT_AYA_BUTTON), true);
+      insertListBox(MATCHING_AYAT_LIST_BOX, 4, 26, 290, 36, true, false);
+    }
 
     insertHorizontalFixedLine(HORIZONTAL_SEPARATOR, 2, 72, 296, 1);
 
@@ -267,10 +287,11 @@ public class InsertQuranTextDialog extends AddonDialog {
     LOGGER.log(Level.FINER, "InsertQuranTextDialog.initializeDialog()");
     getLoDocumentDefaults();
 
-    initializeSearchBox();
-    initializeMatchingAyatListBox();
-    initializeInsertAyaButton();
-
+    if (null != mQuranSearch) {
+      initializeSearchBox();
+      initializeMatchingAyatListBox();
+      initializeInsertAyaButton();
+    }
 
     initializeSurahListBox();
     initializeAyatAllChkBx();
@@ -369,6 +390,8 @@ public class InsertQuranTextDialog extends AddonDialog {
     final XListBox listBox = getControl(controlContainer, XListBox.class, MATCHING_AYAT_LIST_BOX);
 
     // TODO: remove test code below
+
+    /*
     listBox.addItem("بسم الله الرحمان الرحيم", (short) 0);
     listBox.addItem("الحمد لله رب العالمين", (short) 1);
     listBox.addItem("الرحمان الرحيم", (short) 2);
@@ -376,6 +399,7 @@ public class InsertQuranTextDialog extends AddonDialog {
     listBox.addItem("إيك نعبد وإياك نستعين", (short) 4);
     listBox.addItem("اهدنا الصرلط المستقيم", (short) 5);
     listBox.selectItemPos((short) 0, true);
+    */
 
     // TODO align list items right. UNSUPPORTED IN UNO API FOR NOW. XXX
 
@@ -387,7 +411,9 @@ public class InsertQuranTextDialog extends AddonDialog {
   private void initializeInsertAyaButton() {
     LOGGER.log(Level.FINER, "InsertQuranTextDialog.initializeInsertAyaButton");
     registerDialogEvent(
-        INSERT_AYA_BUTTON, controlContainer, XButton.class, ON_INSERT_AYA_BUTTON_PRESSED, this);  // TODO add handler
+        INSERT_AYA_BUTTON, controlContainer, XButton.class, ON_INSERT_AYA_BUTTON_PRESSED, this);
+
+    // TODO add handler logic
   }
 
 
@@ -592,8 +618,7 @@ public class InsertQuranTextDialog extends AddonDialog {
           .getAvailableFontFamilyNames(locale);
 
       for (int i = 0; i < fonts.length; i++) {
-        if (new Font(fonts[i], Font.PLAIN, 10).canDisplay(
-            0x0627)) { // If Alif -> Arabic support ,
+        if (new Font(fonts[i], Font.PLAIN, 10).canDisplay(0x0627)) { // If Alif -> Arabic support ,
             // DCH TODO: && can handle Quran. Or ship the fonts within the exention and load them
           listBox.addItem(fonts[i], (short) i);
           if (fonts[i].equals(getDefaultArabicFontName())) {
@@ -770,25 +795,27 @@ public class InsertQuranTextDialog extends AddonDialog {
   protected void handleSearchBoxTextChanged() {
     LOGGER.log(Level.FINER, "InsertQuranTextDialog.handleSearchBoxTextChanged");
 
+    if (null == mQuranSearch) return;
+
+    // reset the matching list box
     final XListBox listBox = getControl(controlContainer, XListBox.class, MATCHING_AYAT_LIST_BOX);
     if (listBox.getItemCount() > 0) {
       listBox.removeItems((short) 0, listBox.getItemCount());
     }
 
     final XTextComponent textComponent =  (XTextComponent) getControl(controlContainer, XTextComponent.class, AYA_SEARCH_BOX);
-    final String text = textComponent.getText();
-    LOGGER.log(Level.INFO, "InsertQuranTextDialog.handleSearchBoxTextChanged: new text = " + text);
-    if ( text.length() < 3) {
-        return;
+    final String text = textComponent.getText().trim();
+    // LOGGER.log(Level.FINER, "InsertQuranTextDialog.handleSearchBoxTextChanged: new text = " + text);
+
+    // search and fill the matching list box with new results
+    if (mQuranSearch.searchable(text)) {
+      ArrayList<AyaMatch> qlist = mQuranSearch.search(text);
+      for (int i = 0; i < qlist.size(); i++) {
+        AyaMatch match = qlist.get(i);
+        String item = mQuranSearch.getAyaPrefix(match.nfo.surah, match.nfo.aya) + match.strBld.toString();
+        listBox.addItem(item, (short) i);
+      }
     }
-
-    // TODO:
-    // search and reset the matching list box with new results
-
-    //for (int i = 0; i < matches.length; i++) {
-    //    listBox.addItem(matches[i], (short) i);
-    //}
-
   }
 
   @SuppressWarnings("unused")
