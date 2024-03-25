@@ -186,7 +186,8 @@ public class InsertQuranTextDialog extends AddonDialog {
   private static final String RIGHT_PARENTHESIS = new String(Character.toChars(64831));
 
   private QuranSearch mQuranSearch;
-  ArrayList<AyaMatch> mMatchedAyat;
+  private ArrayList<AyaMatch> mMatchedAyat;
+  private int mSelectedAya;
 
   /**
    * Instantiates a new Addon dialog.
@@ -199,6 +200,8 @@ public class InsertQuranTextDialog extends AddonDialog {
     super(componentContext, locale);
     //LOGGER.setLevel(Level.WARNING);
 
+    mSelectedAya = -1;
+    mMatchedAyat = null;
     try {
        mQuranSearch = new QuranSearch(componentContext);
        if (null != mQuranSearch) {
@@ -218,7 +221,7 @@ public class InsertQuranTextDialog extends AddonDialog {
 
     insertGroupBox(SEARCH_GROUP_BOX, 2, 1, 296, 64, rb.getString(SEARCH_GROUP_BOX), true);
     insertEditField(AYA_SEARCH_BOX, AYA_SEARCH_HINT, 46, 10, 248, 14, ALIGNMENT_CENTER, false, true);
-    insertButton(INSERT_AYA_BUTTON, 4, 10, 40, 14, rb.getString(INSERT_AYA_BUTTON), true);
+    insertButton(INSERT_AYA_BUTTON, 4, 10, 40, 14, rb.getString(INSERT_AYA_BUTTON), false);
     insertListBox(MATCHING_AYAT_LIST_BOX, 4, 26, 290, 36, true, false);
 
     insertHorizontalFixedLine(HORIZONTAL_SEPARATOR, 2, 72, 296, 1);
@@ -388,18 +391,6 @@ public class InsertQuranTextDialog extends AddonDialog {
     LOGGER.log(Level.FINER, "InsertQuranTextDialog.initializeMatchingAyatListBox()");
     final XListBox listBox = getControl(controlContainer, XListBox.class, MATCHING_AYAT_LIST_BOX);
 
-    // TODO: remove test code below
-
-    /*
-    listBox.addItem("بسم الله الرحمان الرحيم", (short) 0);
-    listBox.addItem("الحمد لله رب العالمين", (short) 1);
-    listBox.addItem("الرحمان الرحيم", (short) 2);
-    listBox.addItem("مالك يوم الدين", (short) 3);
-    listBox.addItem("إيك نعبد وإياك نستعين", (short) 4);
-    listBox.addItem("اهدنا الصرلط المستقيم", (short) 5);
-    listBox.selectItemPos((short) 0, true);
-    */
-
     // TODO align list items right. UNSUPPORTED IN UNO API FOR NOW. XXX
 
     registerDialogEvent(MATCHING_AYAT_LIST_BOX, controlContainer, XListBox.class,
@@ -411,8 +402,6 @@ public class InsertQuranTextDialog extends AddonDialog {
     LOGGER.log(Level.FINER, "InsertQuranTextDialog.initializeInsertAyaButton");
     registerDialogEvent(
         INSERT_AYA_BUTTON, controlContainer, XButton.class, ON_INSERT_AYA_BUTTON_PRESSED, this);
-
-    // TODO add handler logic
   }
 
 
@@ -805,17 +794,18 @@ public class InsertQuranTextDialog extends AddonDialog {
       listBox.removeItems((short) 0, listBox.getItemCount());
     }
 
-    final XTextComponent textComponent =  (XTextComponent) getControl(controlContainer, XTextComponent.class, AYA_SEARCH_BOX);
-    final String text = textComponent.getText().trim();
+    enableControl(controlContainer, INSERT_AYA_BUTTON, false);
 
-    // LOGGER.log(Level.INFO, "InsertQuranTextDialog.handleSearchBoxTextChanged: new text = " + text);
+    final XTextComponent textComponent =  (XTextComponent) getControl(controlContainer, XTextComponent.class, AYA_SEARCH_BOX);
+    final String text = textComponent.getText().replaceAll("^\\s*", ""); //trim();
 
     // search and fill the matching list box with new results
+    mMatchedAyat = null;
+    mSelectedAya = -1;
     if (mQuranSearch.searchable(text)) {
-      // TODO save matches
-      ArrayList<AyaMatch> qlist = mQuranSearch.search(text);
-      for (int i = 0; i < qlist.size(); i++) {
-        AyaMatch match = qlist.get(i);
+      mMatchedAyat = mQuranSearch.search(text);
+      for (int i = 0; i < mMatchedAyat.size(); i++) {
+        AyaMatch match = mMatchedAyat.get(i);
         // String item = mQuranSearch.getAyaPrefix(match.nfo.surah, match.nfo.aya) + match.strBld.toString();
         String item = match.strBld.toString();
         listBox.addItem(item, (short) i);
@@ -828,29 +818,24 @@ public class InsertQuranTextDialog extends AddonDialog {
     LOGGER.log(Level.FINER, "InsertQuranTextDialog.handleMatchingAyaSelected");
 
     final XListBox listBox = getControl(controlContainer, XListBox.class, MATCHING_AYAT_LIST_BOX);
-    final int selectedMatch = listBox.getSelectedItemPos();
-    // TODO:
-    //  enable insert aya button
+    mSelectedAya = listBox.getSelectedItemPos();
+    enableControl(controlContainer, INSERT_AYA_BUTTON, true);
   }
 
   @SuppressWarnings("unused")
   protected void handleInsertAyaButtonPressed() {
     LOGGER.log(Level.FINER, "InsertQuranTextDialog.handleInsertAyaButtonPressed()");
 
-    final XListBox listBox = getControl(controlContainer, XListBox.class, MATCHING_AYAT_LIST_BOX);
-    if (listBox.getItemCount() > 0) {
-      listBox.removeItems((short) 0, listBox.getItemCount());
+    if (0 > mSelectedAya || null == mMatchedAyat) {
+        LOGGER.log(Level.WARNING, "InsertQuranTextDialog.handleInsertAyaButtonPressed() no match or no Aya selected");
+        return;
     }
-    final int selectedMatch = listBox.getSelectedItemPos();
 
-    AyaMatch selected = mMatchedAyat.get(selectedMatch);
-
-    // TODO    selected.strBld.toString();
-    //insertAya(selectedSurahNo); TODO
+    insertAya(mMatchedAyat.get(mSelectedAya));
     dialog.endExecute();
   }
 
-  public void insertAya(AyaMatch selected) {
+  private void insertAya(AyaMatch aya) {
       final XTextDocument textDoc = DocumentHandler.getCurrentDocument(componentContext);
       XController controller = textDoc.getCurrentController();
       XTextViewCursorSupplier textViewCursorSupplier = DocumentHandler.getCursorSupplier(controller);
@@ -861,20 +846,13 @@ public class InsertQuranTextDialog extends AddonDialog {
       XPropertySet paragraphCursorPropertySet = DocumentHandler.getPropertySet(paragraphCursor);
 
       try {
-         paragraphCursorPropertySet.setPropertyValue("CharFontName", selectedLatinFontName);
+         //paragraphCursorPropertySet.setPropertyValue("CharFontName", selectedLatinFontName);
          paragraphCursorPropertySet.setPropertyValue("CharFontNameComplex", selectedArabicFontName);
-         paragraphCursorPropertySet.setPropertyValue("CharHeight", selectedLatinFontSize);
+         //paragraphCursorPropertySet.setPropertyValue("CharHeight", selectedLatinFontSize);
          paragraphCursorPropertySet.setPropertyValue("CharHeightComplex", selectedArabicFontSize);
 
-      // XXX text.insertString(paragraphCursor, selected.strBld.toString(), false);
+         insertParagraph(text, paragraphCursor, aya.strBld.toString(), selectedArabicLanguage, selectedArabicFontName, selectedArabicFontSize);
 
-         long from = selectedAyatAllInd ? 1L : selectedAyatFrom;
-         long to = selectedAyatAllInd ? QuranReader.getSurahSize(surahNumber) + 1L : selectedAyatTo + 1L;
-         if (selectedLineByLineInd) {
-            insertSurahLineByLine(surahNumber, text, paragraphCursor, from, to);
-         } else {
-            insertSurahAsOneBlock(surahNumber, text, paragraphCursor, from, to);
-         }
       } catch (UnknownPropertyException | PropertyVetoException | WrappedTargetException | com.sun.star.lang.IllegalArgumentException e) {
          e.printStackTrace();
       }
