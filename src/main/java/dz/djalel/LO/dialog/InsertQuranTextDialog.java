@@ -73,6 +73,8 @@ import dz.djalel.quransearch.AyaMatch;
 public class InsertQuranTextDialog extends AddonDialog {
 
   private static final String ARABIC = "Arabic";
+  private static final String DEF_ARABIC_FONTNAME = "Amiri Quran";
+  private static final String DEF_ARABIC_FONTNAME_COLORED = "Amiri Quran Colored";
   private static final String TRANSLITERATION = "Transliteration";
 
   private static final String INSERT_QURAN_TEXT_DLG = "InsertQuranTextDlg";
@@ -205,7 +207,7 @@ public class InsertQuranTextDialog extends AddonDialog {
     try {
        mQuranSearch = new QuranSearch(componentContext);
        if (null != mQuranSearch) {
-          LOGGER.log(Level.INFO, "Quran Search object created");
+          LOGGER.log(Level.FINER, "Quran Search object created");
        }
     } catch (IOException |SecurityException e) {
         mQuranSearch = null;
@@ -219,55 +221,55 @@ public class InsertQuranTextDialog extends AddonDialog {
   protected void addDialogControls() {
     LOGGER.log(Level.FINER, "InsertQuranTextDialog.addDialogControls()");
 
-    insertGroupBox(SEARCH_GROUP_BOX, 2, 1, 296, 64, rb.getString(SEARCH_GROUP_BOX), true);
+    insertGroupBox(SEARCH_GROUP_BOX, 2, 1, 296, 98, rb.getString(SEARCH_GROUP_BOX), true);
     insertEditField(AYA_SEARCH_BOX, AYA_SEARCH_HINT, 46, 10, 248, 14, ALIGNMENT_CENTER, false, true);
     insertButton(INSERT_AYA_BUTTON, 4, 10, 40, 14, rb.getString(INSERT_AYA_BUTTON), false);
-    insertListBox(MATCHING_AYAT_LIST_BOX, 4, 26, 290, 36, true, false);
+    insertListBox(MATCHING_AYAT_LIST_BOX, 4, 26, 290, 70, ALIGNMENT_LEFT, DEF_ARABIC_FONTNAME, (short)14, true, false);
 
-    insertHorizontalFixedLine(HORIZONTAL_SEPARATOR, 2, 72, 296, 1);
+    insertHorizontalFixedLine(HORIZONTAL_SEPARATOR, 2, 106, 296, 1);
 
     // Surah GroupBox
-    insertGroupBox(SURAH_GROUP_BOX, 2, 76, 296, 102, rb.getString(SURAH_GROUP_BOX), true);
-    insertLabel(SURAH_LABEL, 6, 87, 20, 10, rb.getString(SURAH_LABEL), ALIGNMENT_LEFT, false, true);
-    insertListBox(SURAH_LIST_BOX, 26, 87, 65, 10, true);
+    insertGroupBox(SURAH_GROUP_BOX, 2, 110, 296, 102, rb.getString(SURAH_GROUP_BOX), true);
+    insertLabel(SURAH_LABEL, 6, 121, 20, 10, rb.getString(SURAH_LABEL), ALIGNMENT_LEFT, false, true);
+    insertListBox(SURAH_LIST_BOX, 26, 121, 65, 10, true);
 
-    insertLabel(AYAT_LABEL, 110, 87, 24, 10, rb.getString(AYAT_LABEL), ALIGNMENT_LEFT, false, true);
-    insertCheckBox(AYAT_ALL_CHECK_BOX, 138, 87, 10, 10, true);
-    insertLabel(AYAT_FROM_LABEL, 151, 87, 16, 10, rb.getString(AYAT_FROM_LABEL), ALIGNMENT_LEFT, false, false);
-    insertNumericField(AYAT_FROM_NUMERIC_FIELD, 169, 87, 25, 10, false);
-    insertLabel(AYAT_TO_LABEL, 195, 87, 10, 10, rb.getString(AYAT_TO_LABEL), ALIGNMENT_LEFT, false, false);
-    insertNumericField(AYAT_TO_NUMERIC_FIELD, 205, 87, 25, 10, false);
-    insertLabel(LINE_BY_LINE_LABEL, 230, 87, 50, 10, rb.getString(LINE_BY_LINE_LABEL), ALIGNMENT_RIGHT, false, true);
-    insertCheckBox(LINE_BY_LINE_CHECK_BOX, 282, 87, 10, 10, true);
+    insertLabel(AYAT_LABEL, 110, 121, 24, 10, rb.getString(AYAT_LABEL), ALIGNMENT_LEFT, false, true);
+    insertCheckBox(AYAT_ALL_CHECK_BOX, 138, 121, 10, 10, true);
+    insertLabel(AYAT_FROM_LABEL, 151, 121, 16, 10, rb.getString(AYAT_FROM_LABEL), ALIGNMENT_LEFT, false, false);
+    insertNumericField(AYAT_FROM_NUMERIC_FIELD, 169, 121, 25, 10, false);
+    insertLabel(AYAT_TO_LABEL, 195, 121, 10, 10, rb.getString(AYAT_TO_LABEL), ALIGNMENT_LEFT, false, false);
+    insertNumericField(AYAT_TO_NUMERIC_FIELD, 205, 121, 25, 10, false);
+    insertLabel(LINE_BY_LINE_LABEL, 230, 121, 50, 10, rb.getString(LINE_BY_LINE_LABEL), ALIGNMENT_RIGHT, false, true);
+    insertCheckBox(LINE_BY_LINE_CHECK_BOX, 282, 121, 10, 10, true);
 
 
     // Language GroupBox
-    insertGroupBox(LANGUAGE_GROUP_BOX, 5, 100, 290, 57, rb.getString(LANGUAGE_GROUP_BOX), true);
-    insertLabel(ARABIC_LANGUAGE_LABEL, 4, 112, 46, 10, rb.getString(ARABIC_LANGUAGE_LABEL), ALIGNMENT_RIGHT, false, true);
-    insertCheckBox(ARABIC_LANGUAGE_CHECK_BOX, 52, 112, 10, 10, true);
-    insertListBox(ARABIC_LANGUAGE_VERSION_LIST_BOX, 64, 112, 73, 10, true);
+    insertGroupBox(LANGUAGE_GROUP_BOX, 5, 134, 290, 57, rb.getString(LANGUAGE_GROUP_BOX), true);
+    insertLabel(ARABIC_LANGUAGE_LABEL, 4, 146, 46, 10, rb.getString(ARABIC_LANGUAGE_LABEL), ALIGNMENT_RIGHT, false, true);
+    insertCheckBox(ARABIC_LANGUAGE_CHECK_BOX, 52, 146, 10, 10, true);
+    insertListBox(ARABIC_LANGUAGE_VERSION_LIST_BOX, 64, 146, 73, 10, true);
 
-    insertLabel(TRANSLATION_LANGUAGE_VERSION_LABEL, 4, 127, 46, 10, rb.getString(TRANSLATION_LANGUAGE_VERSION_LABEL), ALIGNMENT_RIGHT, false, false);
-    insertCheckBox(TRANSLATION_LANGUAGE_VERSION_CHECK_BOX, 52, 127, 10, 10, true);
-    insertListBox(TRANSLATION_LANGUAGE_VERSION_LIST_BOX, 64, 127, 73, 10, false);
+    insertLabel(TRANSLATION_LANGUAGE_VERSION_LABEL, 4, 161, 46, 10, rb.getString(TRANSLATION_LANGUAGE_VERSION_LABEL), ALIGNMENT_RIGHT, false, false);
+    insertCheckBox(TRANSLATION_LANGUAGE_VERSION_CHECK_BOX, 52, 161, 10, 10, true);
+    insertListBox(TRANSLATION_LANGUAGE_VERSION_LIST_BOX, 64, 161, 73, 10, false);
 
-    insertLabel(TRANSLITERATION_LANGUAGE_VERSION_LABEL, 4, 142, 46, 10, rb.getString(TRANSLITERATION_LANGUAGE_VERSION_LABEL), ALIGNMENT_RIGHT, false, false);
-    insertCheckBox(TRANSLITERATION_LANGUAGE_VERSION_CHECK_BOX, 52, 142, 10, 10, false);
-    insertListBox(TRANSLITERATION_LANGUAGE_VERSION_LIST_BOX, 64, 142, 73, 10, false);
+    insertLabel(TRANSLITERATION_LANGUAGE_VERSION_LABEL, 4, 176, 46, 10, rb.getString(TRANSLITERATION_LANGUAGE_VERSION_LABEL), ALIGNMENT_RIGHT, false, false);
+    insertCheckBox(TRANSLITERATION_LANGUAGE_VERSION_CHECK_BOX, 52, 176, 10, 10, false);
+    insertListBox(TRANSLITERATION_LANGUAGE_VERSION_LIST_BOX, 64, 176, 73, 10, false);
 
     // Arabic Font GroupBox
-    insertLabel(ARABIC_FONT_LABEL, 150, 112, 34, 10, rb.getString(ARABIC_FONT_LABEL), ALIGNMENT_RIGHT, false, true);
-    insertListBox(ARABIC_FONT_LIST_BOX, 188, 112, 82, 10, true);
-    insertNumericField(ARABIC_FONT_SIZE_NUMERIC_FIELD, 272, 112, 22, 10, true);
+    insertLabel(ARABIC_FONT_LABEL, 150, 146, 34, 10, rb.getString(ARABIC_FONT_LABEL), ALIGNMENT_RIGHT, false, true);
+    insertListBox(ARABIC_FONT_LIST_BOX, 188, 146, 82, 10, true);
+    insertNumericField(ARABIC_FONT_SIZE_NUMERIC_FIELD, 272, 146, 22, 10, true);
 
     // Latin Font GroupBox
-    insertLabel(LATIN_FONT_LABEL, 150, 127, 34, 10, rb.getString(LATIN_FONT_LABEL), ALIGNMENT_RIGHT, false, true);
-    insertListBox(LATIN_FONT_LIST_BOX, 188, 127, 82, 10, true);
-    insertNumericField(LATIN_FONT_SIZE_NUMERIC_FIELD, 272, 127, 22, 10, true);
+    insertLabel(LATIN_FONT_LABEL, 150, 161, 34, 10, rb.getString(LATIN_FONT_LABEL), ALIGNMENT_RIGHT, false, true);
+    insertListBox(LATIN_FONT_LIST_BOX, 188, 161, 82, 10, true);
+    insertNumericField(LATIN_FONT_SIZE_NUMERIC_FIELD, 272, 161, 22, 10, true);
 
     // Insert Group
-    insertButton(INSERT_SURAH_BUTTON, 4, 160, 40, 14, rb.getString(INSERT_SURAH_BUTTON), true);
-    insertProgressBar(INSERT_PROGRESS_BAR, 46, 160, 252, 18);
+    insertButton(INSERT_SURAH_BUTTON, 4, 194, 40, 14, rb.getString(INSERT_SURAH_BUTTON), true);
+    insertProgressBar(INSERT_PROGRESS_BAR, 46, 194, 252, 18);
 
     LOGGER.log(Level.FINER, "InsertQuranTextDialog.addDialogControls completed");
   }
@@ -279,7 +281,7 @@ public class InsertQuranTextDialog extends AddonDialog {
       ps.setPropertyValue(PROP_POSITION_X, 200);
       ps.setPropertyValue(PROP_POSITION_Y, 100);
       ps.setPropertyValue(PROP_WIDTH, 300);
-      ps.setPropertyValue(PROP_HEIGHT, 180);
+      ps.setPropertyValue(PROP_HEIGHT, 214);
       ps.setPropertyValue(PROP_TITLE, rb.getString(INSERT_QURAN_TEXT_DLG));
     } catch (final Exception ex) {
       LOGGER.log(Level.SEVERE, ex.toString(), ex);
@@ -341,7 +343,7 @@ public class InsertQuranTextDialog extends AddonDialog {
     }
 
     try {
-      defaultArabicFontName = "Amiri Quran Colored";
+      defaultArabicFontName = DEF_ARABIC_FONTNAME_COLORED;
       boolean available = false;
 
       // Check if the font is available. TODO: pack & install it otherwise.

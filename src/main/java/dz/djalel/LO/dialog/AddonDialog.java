@@ -71,6 +71,7 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
   public static final String PROP_DECIMAL_ACCURACY = "DecimalAccuracy";
   public static final String PROP_DROPDOWN = "Dropdown";
   public static final String PROP_ENABLED = "Enabled";
+  public static final String PROP_FONT_NAME = "FontName";
   public static final String PROP_FONT_HEIGHT = "FontHeight";
   public static final String PROP_FONT_WEIGHT = "FontWeight";
   public static final String PROP_HEIGHT = "Height";
@@ -644,6 +645,47 @@ public abstract class AddonDialog implements XActionListener, XItemListener, XTe
           y,
           width
       });
+
+      nameContainer.insertByName(dlgName, listBoxModel);
+      AddonDialogTools.showProperties(controlContainer, dlgName);
+    } catch (final Exception ex) {
+      LOGGER.log(Level.SEVERE, ex.toString(), ex);
+    }
+  }
+
+  protected void insertListBox(
+      final String dlgName, final int x, final int y, final int width, final int height,
+      final short alignment, final String fontName, final short fontHeight, final boolean enable, final boolean dropdown) {
+
+    LOGGER.log(Level.FINER, "AddonDialog.insertListBox()");
+    try {
+      final Object listBoxModel = AddonDialogTools.createInstance(multiServiceFactory,
+          "com.sun.star.awt.UnoControlListBoxModel");
+      final XMultiPropertySet mps = AddonDialogTools.getMultiPropertSet(listBoxModel);
+      mps.setPropertyValues(new String[]{
+          PROP_ALIGN,
+          PROP_FONT_NAME,
+          PROP_DROPDOWN,
+          PROP_ENABLED,
+          PROP_FONT_HEIGHT,
+          PROP_HEIGHT,
+          PROP_NAME,
+          PROP_POSITION_X,
+          PROP_POSITION_Y,
+          PROP_WIDTH
+      }, new Object[]{
+          alignment,
+          fontName,
+          dropdown,
+          enable,
+          fontHeight,
+          height,
+          dlgName,
+          x,
+          y,
+          width
+      });
+
       nameContainer.insertByName(dlgName, listBoxModel);
       AddonDialogTools.showProperties(controlContainer, dlgName);
     } catch (final Exception ex) {
