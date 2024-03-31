@@ -1,10 +1,10 @@
 /*
- * This file is part of CiteQuranOXT
+ * This file is part of CiteQuran
  *
  * Copyright (C) 2020-2022 <mossie@mossoft.nl>
  * Copyright (C) 2024  Djalel Chefrour <cdjalel@gmail.com>
  *
- * CiteQuranOXT is free software based on QuranLO from <mossie@mossoft.nl> and Android
+ * CiteQuran is free software based on QuranLO from <mossie@mossoft.nl> and Android
  * QuranKeyboard from <cdjalel@gmail>. You can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation version 3L icense.
  *

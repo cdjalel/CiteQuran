@@ -1,4 +1,2 @@
-This add-on allows you to insert Arabic text from the Qur'an into your document.
-Either by selecting a single ayat or a range of ayats from a surah.
-
-Additionally, you have the ability to add several translations to the text.
+CiteQuran is a LibreOffice extension that allows you to Cite the Holy Quran in your Writer document without errors and with proper Arabic fonts. It allows you to search the Quran with Arabic keywords and insert one of the matching Ayat into your document.
+CiteQuran is derived from QuranLOAddon which also allows you to select a Surah by name and insert either all of it Ayat or a range of them. Moreover, you can also add several translations of these Ayat.

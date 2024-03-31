@@ -1,10 +1,10 @@
 /*
- * This file is part of CiteQuranOXT
+ * This file is part of CiteQuran
  *
  * Copyright (C) 2020-2022 <mossie@mossoft.nl>
  * Copyright (C) 2024  Djalel Chefrour <cdjalel@gmail.com>
  *
- * CiteQuranOXT is free software based on QuranLO from <mossie@mossoft.nl> and Android
+ * CiteQuran is free software based on QuranLO from <mossie@mossoft.nl> and Android
  * QuranKeyboard from <cdjalel@gmail>. You can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation version 3L icense.
  *
@@ -81,7 +81,7 @@ public class InsertQuranTextDialog extends AddonDialog {
 
   private static final String SEARCH_GROUP_BOX = "SearchGroupBox";
   private static final String AYA_SEARCH_BOX = "AyaSearchBox";
-  private static final String AYA_SEARCH_HINT = "⌕"; // "أدخل كلمات البحث في نص القرآن الكريم";
+  private static final String AYA_SEARCH_HINT = "أدخل كلمات البحث في نص القرآن الكريم";  //"⌕";
   private static final String MATCHING_AYAT_LIST_BOX = "AyatListBox";
 
   private static final String INSERT_AYA_BUTTON = "InsertAyaButton";
@@ -808,8 +808,8 @@ public class InsertQuranTextDialog extends AddonDialog {
       mMatchedAyat = mQuranSearch.search(text);
       for (int i = 0; i < mMatchedAyat.size(); i++) {
         AyaMatch match = mMatchedAyat.get(i);
-        // String item = mQuranSearch.getAyaPrefix(match.nfo.surah, match.nfo.aya) + match.strBld.toString();
-        String item = match.strBld.toString();
+        String item = match.strBld.toString() + mQuranSearch.getAyaSuffix(match.nfo.surah, match.nfo.aya);
+        //String item = match.strBld.toString();
         listBox.addItem(item, (short) i);
       }
     }
@@ -853,7 +853,8 @@ public class InsertQuranTextDialog extends AddonDialog {
          //paragraphCursorPropertySet.setPropertyValue("CharHeight", selectedLatinFontSize);
          paragraphCursorPropertySet.setPropertyValue("CharHeightComplex", selectedArabicFontSize);
 
-         insertParagraph(text, paragraphCursor, aya.strBld.toString(), selectedArabicLanguage, selectedArabicFontName, selectedArabicFontSize);
+         String str = RIGHT_PARENTHESIS + aya.strBld.toString() + LEFT_PARENTHESIS + mQuranSearch.getAyaSuffix(aya.nfo.surah, aya.nfo.aya);
+         insertString(text, paragraphCursor, str, selectedArabicLanguage, selectedArabicFontName, selectedArabicFontSize);
 
       } catch (UnknownPropertyException | PropertyVetoException | WrappedTargetException | com.sun.star.lang.IllegalArgumentException e) {
          e.printStackTrace();
@@ -1234,6 +1235,23 @@ public class InsertQuranTextDialog extends AddonDialog {
       }
 
       text.insertString(paragraphCursor, paragraph, false);
+   }
+
+   private void insertString(XText text, XParagraphCursor paragraphCursor, String str, String language, String fontName, double fontSize) throws UnknownPropertyException, PropertyVetoException, WrappedTargetException {
+      XPropertySet paragraphCursorPropertySet = DocumentHandler.getPropertySet(paragraphCursor);
+      if (getLanguageWritingMode(language) == 0) {
+         paragraphCursorPropertySet.setPropertyValue("ParaAdjust", ParagraphAdjust.LEFT);
+         paragraphCursorPropertySet.setPropertyValue("WritingMode", Short.valueOf((short)0));
+         paragraphCursorPropertySet.setPropertyValue("CharFontName", fontName);
+         paragraphCursorPropertySet.setPropertyValue("CharHeight", fontSize);
+      } else {
+         paragraphCursorPropertySet.setPropertyValue("ParaAdjust", ParagraphAdjust.RIGHT);
+         paragraphCursorPropertySet.setPropertyValue("WritingMode", Short.valueOf((short)1));
+         paragraphCursorPropertySet.setPropertyValue("CharFontNameComplex", fontName);
+         paragraphCursorPropertySet.setPropertyValue("CharHeightComplex", fontSize);
+      }
+
+      text.insertString(paragraphCursor, str, false);
    }
 
    private void insertSurahAsOneBlock(int surahNumber, XText text, XParagraphCursor paragraphCursor, long from, long to) {

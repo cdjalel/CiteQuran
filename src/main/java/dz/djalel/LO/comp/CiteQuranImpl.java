@@ -13,12 +13,12 @@ import dz.djalel.LO.dialog.InsertQuranTextDialog;
 import dz.djalel.LO.utils.AddonLogger;
 import dz.djalel.LO.utils.DialogType;
 
-public class CiteQuranOXTImpl extends WeakBase
+public class CiteQuranImpl extends WeakBase
     implements com.sun.star.lang.XServiceInfo, com.sun.star.task.XJobExecutor {
 
-  private static final String ADDON_NAME = "dz.djalel.LO.CiteQuranOXT";
-  private static final String IMPLEMENTATION_NAME = CiteQuranOXTImpl.class.getName();
-  private static final String[] SERVICE_NAMES = {CiteQuranOXTImpl.ADDON_NAME};
+  private static final String ADDON_NAME = "dz.djalel.LO.CiteQuran";
+  private static final String IMPLEMENTATION_NAME = CiteQuranImpl.class.getName();
+  private static final String[] SERVICE_NAMES = {CiteQuranImpl.ADDON_NAME};
 
   private static final String COMMAND_SHOW_IQT_DIALOG = "ShowIQTDialog";
   private static final String COMMAND_SHOW_ABOUT_DIALOG = "ShowAboutDialog";
@@ -28,7 +28,7 @@ public class CiteQuranOXTImpl extends WeakBase
   private final XComponentContext componentContext;
   private final Locale locale;
 
-  public CiteQuranOXTImpl(final XComponentContext componentContext) {
+  public CiteQuranImpl(final XComponentContext componentContext) {
     this.componentContext = componentContext;
     locale = new Locale.Builder().setLanguage("en").setRegion("US").build();
 
@@ -46,9 +46,9 @@ public class CiteQuranOXTImpl extends WeakBase
       final String implementationName) {
     XSingleComponentFactory singleComponentFactory = null;
 
-    if (implementationName.equals(CiteQuranOXTImpl.IMPLEMENTATION_NAME)) {
-      singleComponentFactory = Factory.createComponentFactory(CiteQuranOXTImpl.class,
-          CiteQuranOXTImpl.SERVICE_NAMES);
+    if (implementationName.equals(CiteQuranImpl.IMPLEMENTATION_NAME)) {
+      singleComponentFactory = Factory.createComponentFactory(CiteQuranImpl.class,
+          CiteQuranImpl.SERVICE_NAMES);
     }
     return singleComponentFactory;
   }
@@ -60,13 +60,13 @@ public class CiteQuranOXTImpl extends WeakBase
    * @return true if successful
    */
   public static boolean __writeRegistryServiceInfo(final XRegistryKey registryKey) {
-    return Factory.writeRegistryServiceInfo(CiteQuranOXTImpl.IMPLEMENTATION_NAME,
-        CiteQuranOXTImpl.SERVICE_NAMES, registryKey);
+    return Factory.writeRegistryServiceInfo(CiteQuranImpl.IMPLEMENTATION_NAME,
+        CiteQuranImpl.SERVICE_NAMES, registryKey);
   }
 
   @Override
   public String getImplementationName() {
-    return CiteQuranOXTImpl.IMPLEMENTATION_NAME;
+    return CiteQuranImpl.IMPLEMENTATION_NAME;
   }
 
   /**
@@ -74,7 +74,7 @@ public class CiteQuranOXTImpl extends WeakBase
    */
   @Override
   public boolean supportsService(final String service) {
-    for (final String serviceName : CiteQuranOXTImpl.SERVICE_NAMES) {
+    for (final String serviceName : CiteQuranImpl.SERVICE_NAMES) {
       if (service.equals(serviceName)) {
         return true;
       }
@@ -87,19 +87,19 @@ public class CiteQuranOXTImpl extends WeakBase
    */
   @Override
   public String[] getSupportedServiceNames() {
-    return CiteQuranOXTImpl.SERVICE_NAMES;
+    return CiteQuranImpl.SERVICE_NAMES;
   }
 
   @Override
   public void trigger(final String command) {
     switch (command) {
       case COMMAND_SHOW_IQT_DIALOG -> {
-        LOGGER.log(Level.FINER, "CiteQuranOXTImpl.trigger.COMMAND_SHOW_IQT_DIALOG");
+        LOGGER.log(Level.FINER, "CiteQuranImpl.trigger.COMMAND_SHOW_IQT_DIALOG");
         AddonDialog.loadAddonDialog(DialogType.INSERTQURANTEXTDIALOG, componentContext, locale)
             .show();
       }
       case COMMAND_SHOW_ABOUT_DIALOG -> {
-        LOGGER.log(Level.FINER, "CiteQuranOXTImpl.trigger.COMMAND_SHOW_ABOUT_DIALOG");
+        LOGGER.log(Level.FINER, "CiteQuranImpl.trigger.COMMAND_SHOW_ABOUT_DIALOG");
         AddonDialog.loadAddonDialog(DialogType.ABOUTDIALOG, componentContext, locale).show();
       }
       default -> LOGGER.log(Level.SEVERE, "Unknown command {0}", new Object[]{command});

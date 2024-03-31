@@ -1,6 +1,6 @@
-# CiteQuranOXT
-CiteQuranOXT is an open source LibreOffice extention under GPLv3 based on QuranLOAddon.
-CiteQuranOXT redesigns the GUI and completes unfinished business of QuranLOAddon based on Java decompiling of [binary release](https://extensions.libreoffice.org/en/extensions/show/1102).
+# CiteQuran
+CiteQuran is an open source LibreOffice extention under GPLv3 based on QuranLOAddon.
+CiteQuran redesigns the GUI and completes unfinished business of QuranLOAddon based on Java decompiling of [binary release](https://extensions.libreoffice.org/en/extensions/show/1102).
 It adds a new feature that allows users to:
 
 - Searching in the Quran text

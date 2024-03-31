@@ -1,2 +1,2 @@
-rootProject.name = "CiteQuranOXT"
+rootProject.name = "CiteQuran"
 

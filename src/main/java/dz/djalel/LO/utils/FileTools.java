@@ -23,7 +23,7 @@ public class FileTools {
     final XPackageInformationProvider packageInformationProvider =
         PackageInformationProvider.get(context);
     final String location =
-        packageInformationProvider.getPackageLocation("dz.djalel.LO.CiteQuranOXT");
+        packageInformationProvider.getPackageLocation("dz.djalel.LO.CiteQuran");
 
     try {
       final Object oUrlTransformer = context.getServiceManager()
@@ -48,7 +48,7 @@ public class FileTools {
     final XPackageInformationProvider packageInformationProvider =
         PackageInformationProvider.get(context);
     final String location =
-        packageInformationProvider.getPackageLocation("dz.djalel.LO.CiteQuranOXT");
+        packageInformationProvider.getPackageLocation("dz.djalel.LO.CiteQuran");
 
     try {
       final Object oUrlTransformer = context.getServiceManager()

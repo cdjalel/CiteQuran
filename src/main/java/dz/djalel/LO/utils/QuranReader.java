@@ -113,7 +113,7 @@ public class QuranReader {
         PackageInformationProvider.get(
         xcontext);
     final String location = xpackageInformationProvider.getPackageLocation(
-        "dz.djalel.LO.CiteQuranOXT");
+        "dz.djalel.LO.CiteQuran");
     final Object otransformer;
     try {
       otransformer = xcontext.getServiceManager()

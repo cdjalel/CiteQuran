@@ -22,7 +22,7 @@ dependencies {
 tasks.withType<Jar> {
     manifest {
         attributes["RegistrationClassName"] = "dz.djalel.LO.comp.RegistrationHandler"
-        attributes["Implementation-Title"] = "CiteQuranOXT"
+        attributes["Implementation-Title"] = "CiteQuran"
         attributes["Implementation-Version"] = project.version
     }
     from(sourceSets["main"].allSource) {
@@ -94,7 +94,7 @@ tasks.register<Exec>("compileIDLfile") {
         "/usr/lib/libreoffice/sdk/bin/unoidl-write",
         "/usr/lib64/libreoffice/program/types.rdb",
         "/usr/lib64/libreoffice/program/types/offapi.rdb",
-        "idl/dz.djalel.LO/CiteQuranOXT/CiteQuranOXT.idl",
+        "idl/dz.djalel.LO/CiteQuran/CiteQuran.idl",
         "toArchive/types.rdb"
     )
 }

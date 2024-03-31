@@ -36,7 +36,7 @@ public class AboutDialog extends AddonDialog {
 
   private static final Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
-  private static final String JAR_FILE = "CiteQuranOXT.jar";
+  private static final String JAR_FILE = "CiteQuran.jar";
   private static final String LOGO_FILE = "images/q64.png";
 
   /**

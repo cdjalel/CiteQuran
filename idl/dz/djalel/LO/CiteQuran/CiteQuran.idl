@@ -1,8 +1,8 @@
-#ifndef __dz_djalel_LO_CiteQuranOXT_CiteQuranOXT_idl__
-#define __dz_djalel_LO_CiteQuranOXT_CiteQuranOXT_idl__
+#ifndef __dz_djalel_LO_CiteQuran_CiteQuran_idl__
+#define __dz_djalel_LO_CiteQuran_CiteQuran_idl__
 
 #include <com/sun/star/task/XJobExecutor.idl>
-module dz { module djalel { module LO { module CiteQuranOXT {
+module dz { module djalel { module LO { module CiteQuran {
 
 	service ShowIQTDialog : com::sun::star::task::XJobExecutor {
 

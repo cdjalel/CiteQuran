@@ -10,7 +10,7 @@
     <node oor:name="States">
       <!-- Used to dock the toolbar in the first toolbar row (by default it's floating) -->
       <node
-        oor:name="private:resource/toolbar/dz.djalel.LO.CiteQuranOXT.toolbar"
+        oor:name="private:resource/toolbar/dz.djalel.LO.CiteQuran.toolbar"
         oor:op="replace">
         <prop
           oor:name="UIName"

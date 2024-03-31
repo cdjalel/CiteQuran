@@ -354,7 +354,7 @@ public class QuranSearch {
 
         if (null != quran) {
             ayaBegin = true; // TODO: context.settings.isPrefAyaBegin();
-            surahAyaNbrs = true; // TODO: context.settings.isPrefSurahAyaNbrs();
+            surahAyaNbrs = false; // TODO: context.settings.isPrefSurahAyaNbrs();
             rasm = Rasm.UTHMANI ; // TODO: context.settings.getPrefRasm();
 
             if (null == specialCases) {
@@ -432,7 +432,7 @@ public class QuranSearch {
         return results;
     }
 
-    private String getAyaSuffix(int surah, int aya)
+    public String getAyaSuffix(int surah, int aya)
     {
         return String.format(Locale.getDefault(), AYA_SUFFIX_FMT,
                 SURAH_NAME[surah - 1][rasm == Rasm.IMLA ? 0 : 1], aya);
